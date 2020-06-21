@@ -38,10 +38,8 @@ func main() {
 		panic(err)
 	}
 	userIdsChan := make(chan []int64)
-	//outputChan := make(chan anaconda.User)
 
-	go CollectUserByDescription(api, userIdsChan, c.SearchContext) //, outputChan)
-	//go handleUserResult(outputChan)
+	go CollectUserByDescription(api, userIdsChan, c.SearchBioContext, c.SearchLocationContext)
 
 	if c.Following {
 		following, err := api.GetFriendsUser(userProfile[0].Id, nil)
@@ -71,7 +69,7 @@ func main() {
 }
 
 // CollectUserByDescription :
-func CollectUserByDescription(api *anaconda.TwitterApi, ids chan []int64, context []string) []anaconda.User {
+func CollectUserByDescription(api *anaconda.TwitterApi, ids chan []int64, bio []string, locations []string) []anaconda.User {
 	currantLimit := 0
 	for {
 		inIdes := <-ids
@@ -81,28 +79,42 @@ func CollectUserByDescription(api *anaconda.TwitterApi, ids chan []int64, contex
 			currantLimit = 0
 		}
 		if len(inIdes) > 0 {
-			collectUserList(api, inIdes, context)
+			collectUserList(api, inIdes, bio, locations)
 		}
 	}
 }
 
-func collectUserList(api *anaconda.TwitterApi, ids []int64, context []string) {
+func collectUserList(api *anaconda.TwitterApi, ids []int64, bio []string, locations []string) {
 	wg.Add(len(ids))
 	fuserProfile, err := api.GetUsersLookupByIds(ids, nil)
 	if err != nil {
 		panic(err)
 	}
 	for _, user := range fuserProfile {
-		userInContext := false
-		for _, keyword := range context {
+		bioInUser := false
+		userInLocation := false
+		if len(bio) < 1 {
+			bioInUser = true
+		}
+		if len(locations) < 1 {
+			userInLocation = true
+		}
+
+		for _, keyword := range bio {
 			if strings.Contains(strings.ToLower(user.Description), strings.ToLower(keyword)) {
-				userInContext = true
+				bioInUser = true
+				fmt.Printf("    MATCH BIO >> >>>>>>>>>>>>>> https://twitter.com/%v\n", user.ScreenName)
 				break
 			}
 		}
-		if userInContext {
-			fmt.Printf("    MATCH >> >>>>>>>>>>>>>> https://twitter.com/%v\n", user.ScreenName)
-			// outputChan <- user
+		for _, keyword := range locations {
+			if strings.Contains(strings.ToLower(user.Location), strings.ToLower(keyword)) {
+				userInLocation = true
+				fmt.Printf("    MATCH LOCATION >> >>>>>>>>>>>>>> https://twitter.com/%v\n", user.ScreenName)
+				break
+			}
+		}
+		if bioInUser && userInLocation {
 			finalResult = append(finalResult, user)
 			continue
 		}

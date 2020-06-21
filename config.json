@@ -4,11 +4,15 @@
     "ACCESS_TOKEN": "<ACCESS_TOKEN>",
     "ACCESS_TOKEN_SECRET": "<ACCESS_TOKEN_SECRET>",
     "SEARCH_USER": "MostafaNageeb",
-    "SEARCH_CONTEXT": [
+    "SEARCH_BIO_CONTEXT": [
         "Develper",
         "CEO",
         "Linux",
         "technology"
+    ],
+    "SEARCH_LOCATION_CONTEXT": [
+        "Berlin",
+        "Gothenburg"
     ],
     "FOLLOWING": true,
     "FOLLOWERS": false
