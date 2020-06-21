@@ -11,7 +11,5 @@
         "technology"
     ],
     "FOLLOWING": true,
-    "FOLLOWERS": false,
-    "RATE_LIMIT_COUNT": 10,
-    "RATE_LIMIT_TIME": 15
+    "FOLLOWERS": false
 }

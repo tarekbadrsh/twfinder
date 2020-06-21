@@ -23,8 +23,6 @@ type Config struct {
 	SearchContext     []string `json:"SEARCH_CONTEXT" envconfig:"SEARCH_CONTEXT"`
 	Following         bool     `json:"FOLLOWING" envconfig:"FOLLOWING"`
 	Followers         bool     `json:"FOLLOWERS" envconfig:"FOLLOWERS"`
-	RateLimitCount    int64    `json:"RATE_LIMIT_COUNT" envconfig:"RATE_LIMIT_COUNT"`
-	RateLimitTime     int64    `json:"RATE_LIMIT_TIME" envconfig:"RATE_LIMIT_TIME"`
 }
 
 // Configuration : get configuration based on json file or environment variables
