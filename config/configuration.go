@@ -28,6 +28,8 @@ type Config struct {
 
 // SearchCriteria : application Search Criteria
 type SearchCriteria struct {
+	SearchHandleContext   []string     `json:"SEARCH_HANDLE_CONTEXT" envconfig:"SEARCH_HANDLE_CONTEXT"`
+	SearchNameContext     []string     `json:"SEARCH_NAME_CONTEXT" envconfig:"SEARCH_NAME_CONTEXT"`
 	SearchBioContext      []string     `json:"SEARCH_BIO_CONTEXT" envconfig:"SEARCH_BIO_CONTEXT"`
 	SearchLocationContext []string     `json:"SEARCH_LOCATION_CONTEXT" envconfig:"SEARCH_LOCATION_CONTEXT"`
 	FollowersCountBetween FromToNumber `json:"FOLLOWERS_COUNT_BETWEEN" envconfig:"FOLLOWERS_COUNT_BETWEEN"`

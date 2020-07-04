@@ -5,6 +5,14 @@
     "ACCESS_TOKEN_SECRET": "<ACCESS_TOKEN_SECRET>",
     "SEARCH_USER": "MostafaNageeb",
     "SEARCH_CRITERIA": {
+        "SEARCH_HANDLE_CONTEXT": [
+            "adam",
+            "erik"
+        ],
+        "SEARCH_NAME_CONTEXT": [
+            "dr",
+            "mr"
+        ],
         "SEARCH_BIO_CONTEXT": [
             "Develper",
             "CEO",
