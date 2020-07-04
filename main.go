@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 	"sync"
 	"text/template"
 	"time"
 	"twfinder/config"
+	"twfinder/finder"
 	"twfinder/templates"
 
 	"github.com/tarekbadrshalaan/anaconda"
@@ -19,7 +19,7 @@ const (
 	// TWITTERTIMELIMIT :
 	TWITTERTIMELIMIT = 900
 	// PATCHSIZE :
-	PATCHSIZE = 100
+	PATCHSIZE = 90
 )
 
 var (
@@ -32,6 +32,10 @@ func main() {
 	c := config.Configuration()
 	/* configuration initialize end */
 
+	/* finder build start */
+	finder.BuildSearchCriteria()
+	/* finder build end */
+
 	api := anaconda.NewTwitterApiWithCredentials(c.AccessToken, c.AccessTokenSecret, c.ConsumerKey, c.ConsumerSecret)
 	userProfile, err := api.GetUsersLookup(c.SearchUser, nil)
 	if err != nil {
@@ -39,14 +43,15 @@ func main() {
 	}
 	userIdsChan := make(chan []int64)
 
-	go CollectUserByDescription(api, userIdsChan, c.SearchBioContext, c.SearchLocationContext)
+	go CollectUserByDescription(api, userIdsChan)
 
 	if c.Following {
 		following, err := api.GetFriendsUser(userProfile[0].Id, nil)
 		if err != nil {
 			panic(err)
 		}
-		handleIdsList(following.Ids, userIdsChan)
+		userIdsChan <- following.Ids[:PATCHSIZE]
+		//	handleIdsList(following.Ids, userIdsChan)
 	}
 
 	if c.Followers {
@@ -56,6 +61,7 @@ func main() {
 		}
 		handleIdsList(followers.Ids, userIdsChan)
 	}
+	time.Sleep(1 * time.Second)
 	wg.Wait()
 	tm, err := getTemplate(templates.Timeline)
 	if err != nil {
@@ -69,7 +75,7 @@ func main() {
 }
 
 // CollectUserByDescription :
-func CollectUserByDescription(api *anaconda.TwitterApi, ids chan []int64, bio []string, locations []string) []anaconda.User {
+func CollectUserByDescription(api *anaconda.TwitterApi, ids chan []int64) []anaconda.User {
 	currantLimit := 0
 	for {
 		inIdes := <-ids
@@ -79,47 +85,22 @@ func CollectUserByDescription(api *anaconda.TwitterApi, ids chan []int64, bio []
 			currantLimit = 0
 		}
 		if len(inIdes) > 0 {
-			collectUserList(api, inIdes, bio, locations)
+			collectUserList(api, inIdes)
 		}
 	}
 }
 
-func collectUserList(api *anaconda.TwitterApi, ids []int64, bio []string, locations []string) {
+func collectUserList(api *anaconda.TwitterApi, ids []int64) {
 	wg.Add(len(ids))
 	fuserProfile, err := api.GetUsersLookupByIds(ids, nil)
 	if err != nil {
 		panic(err)
 	}
 	for _, user := range fuserProfile {
-		bioInUser := false
-		userInLocation := false
-		if len(bio) < 1 {
-			bioInUser = true
-		}
-		if len(locations) < 1 {
-			userInLocation = true
-		}
-
-		for _, keyword := range bio {
-			if strings.Contains(strings.ToLower(user.Description), strings.ToLower(keyword)) {
-				bioInUser = true
-				fmt.Printf("    MATCH BIO >> >>>>>>>>>>>>>> https://twitter.com/%v\n", user.ScreenName)
-				break
-			}
-		}
-		for _, keyword := range locations {
-			if strings.Contains(strings.ToLower(user.Location), strings.ToLower(keyword)) {
-				userInLocation = true
-				fmt.Printf("    MATCH LOCATION >> >>>>>>>>>>>>>> https://twitter.com/%v\n", user.ScreenName)
-				break
-			}
-		}
-		if bioInUser && userInLocation {
+		if finder.CheckUser(&user) {
 			finalResult = append(finalResult, user)
 			continue
 		}
-		fmt.Printf("NOT MATCH >> https://twitter.com/%v\n", user.ScreenName)
-
 	}
 	for range ids {
 		wg.Done()
