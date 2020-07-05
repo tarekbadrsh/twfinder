@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"sync"
-	"text/template"
 	"time"
 	"twfinder/config"
 	"twfinder/finder"
+	"twfinder/request"
+	"twfinder/storage"
 	"twfinder/templates"
 
 	"github.com/tarekbadrshalaan/anaconda"
@@ -19,7 +19,7 @@ const (
 	// TWITTERTIMELIMIT :
 	TWITTERTIMELIMIT = 900
 	// PATCHSIZE :
-	PATCHSIZE = 90
+	PATCHSIZE = 100
 )
 
 var (
@@ -51,7 +51,6 @@ func main() {
 			panic(err)
 		}
 		userIdsChan <- following.Ids[:PATCHSIZE]
-		//	handleIdsList(following.Ids, userIdsChan)
 	}
 
 	if c.Followers {
@@ -59,19 +58,18 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		handleIdsList(followers.Ids, userIdsChan)
+		userIdsChan <- followers.Ids[:PATCHSIZE]
 	}
 	time.Sleep(1 * time.Second)
 	wg.Wait()
-	tm, err := getTemplate(templates.Timeline)
+	tm, err := storage.Template(templates.Timeline)
 	if err != nil {
 		panic(err)
 	}
-	generateFile("result.html", tm, finalResult)
+	storage.Store("result.html", tm, finalResult)
 	fmt.Println("-------------------------------")
 	fmt.Printf("Total Match : %v\n", len(finalResult))
 	fmt.Println("Result html has been generated :)")
-
 }
 
 // CollectUserByDescription :
@@ -85,54 +83,13 @@ func CollectUserByDescription(api *anaconda.TwitterApi, ids chan []int64) []anac
 			currantLimit = 0
 		}
 		if len(inIdes) > 0 {
-			collectUserList(api, inIdes)
+			wg.Add(1)
+			res, err := request.CollectUsers(api, inIdes)
+			if err != nil {
+				panic(err)
+			}
+			finalResult = append(finalResult, res...)
+			wg.Done()
 		}
 	}
-}
-
-func collectUserList(api *anaconda.TwitterApi, ids []int64) {
-	wg.Add(len(ids))
-	fuserProfile, err := api.GetUsersLookupByIds(ids, nil)
-	if err != nil {
-		panic(err)
-	}
-	for _, user := range fuserProfile {
-		if finder.CheckUser(&user) {
-			finalResult = append(finalResult, user)
-			continue
-		}
-	}
-	for range ids {
-		wg.Done()
-	}
-}
-
-func handleIdsList(ids []int64, idsChn chan []int64) {
-	lenIds := len(ids)
-	for i := 0; i < lenIds; i += PATCHSIZE {
-		if i+PATCHSIZE < lenIds {
-			idsChn <- ids[i : PATCHSIZE+i]
-		} else {
-			idsChn <- ids[i:]
-		}
-	}
-}
-
-func getTemplate(temp string) (*template.Template, error) {
-	tmpl, err := template.New("model").Parse(temp)
-
-	if err != nil {
-		return nil, err
-	}
-	return tmpl, nil
-}
-
-func generateFile(filepath string, tmp *template.Template, data interface{}) error {
-	f, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	return tmp.Execute(f, data)
 }
