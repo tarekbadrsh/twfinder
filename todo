@@ -8,6 +8,8 @@
     lists COUN-> listedcount 
     tweets count -> statuesCount
 
+- consider twitter 100 rate limit -- > done
+- packageing the code -- > done 
+ 
 - recursive search 
-- packageing the code
 - update output result
