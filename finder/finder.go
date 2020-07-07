@@ -1,6 +1,7 @@
 package finder
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 	"twfinder/config"
@@ -57,10 +58,10 @@ func CheckUser(user *anaconda.User) bool {
 		}
 	}
 	if match {
-		// fmt.Printf("FULL MATCH >> >>>>>>>>>>>>>> https://twitter.com/%v\n", user.ScreenName)
-	} else if len(lstFunName) > 0 {
-		// fmt.Printf("NOT MATCH >> >>>>>>>>>>>>>> https://twitter.com/%v | VALID-FOR(%v)\n", user.ScreenName, lstFunName)
-	}
+		fmt.Printf("MATCH >> >>>>>>>>>>>>>> https://twitter.com/%v\n", user.ScreenName)
+	} //else if len(lstFunName) > 0 {
+	// fmt.Printf("NOT MATCH >> >>>>>>>>>>>>>> https://twitter.com/%v | VALID-FOR(%v)\n", user.ScreenName, lstFunName)
+	//}
 	return match
 }
 

@@ -1,7 +1,6 @@
-package templates
+package html
 
-// Timeline :
-var Timeline = `
+var timelineTmpl = `
 <!DOCTYPE html>
 <html>
 

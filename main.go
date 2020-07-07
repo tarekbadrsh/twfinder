@@ -1,29 +1,16 @@
 package main
 
 import (
-	"fmt"
-	"sync"
+	"log"
+	"os"
 	"twfinder/config"
 	"twfinder/finder"
 	"twfinder/request"
+	"twfinder/static"
 	"twfinder/storage"
-	"twfinder/templates"
+	"twfinder/storage/html"
 
 	"github.com/tarekbadrshalaan/anaconda"
-)
-
-const (
-	// TWITTERREQUESTSLIMIT :
-	TWITTERREQUESTSLIMIT = 900
-	// TWITTERTIMELIMIT :
-	TWITTERTIMELIMIT = 900
-	// PATCHSIZE :
-	PATCHSIZE = 99
-)
-
-var (
-	wg          sync.WaitGroup
-	finalResult []anaconda.User
 )
 
 func main() {
@@ -43,48 +30,44 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	usersIdsChan := make(chan int64, PATCHSIZE)
 
-	go CollectUserByDescription(usersIdsChan)
+	usersIdsChan := make(chan int64, static.TWITTERPATCHSIZE)
+	validUsersChan := make(chan anaconda.User, static.RESULTPATCHSIZE)
 
-	request.CollectUserData(userProfile[0].Id, usersIdsChan)
+	go CollectUserByDescription(usersIdsChan, validUsersChan)
 
-	wg.Wait()
+	go request.UserFollowersFollowing(userProfile[0].Id, usersIdsChan)
 
-	tm, err := storage.Template(templates.Timeline)
+	stor, err := html.BuildHTMLStore("result", validUsersChan)
 	if err != nil {
 		panic(err)
 	}
+	storage.RegisterStorage(stor)
+	go storage.Store()
 
-	storage.Store("result.html", tm, finalResult)
-	fmt.Println("-------------------------------")
-	fmt.Printf("Total Match : %v\n", len(finalResult))
-	fmt.Println("Result html has been generated :)")
+	// shutdown the application gracefully
+	cancelChan := make(chan os.Signal, 1)
+	sig := <-cancelChan
+	log.Printf("Caught SIGTERM %v", sig)
+	close(usersIdsChan)
 }
 
 // CollectUserByDescription :
-func CollectUserByDescription(ids chan int64) {
-	wg.Add(1)
-	defer wg.Done()
-	chanOpen := true
+func CollectUserByDescription(ids chan int64, validUsersChan chan anaconda.User) {
 	for {
-		inIdes := make([]int64, PATCHSIZE)
-		for i := 0; i < PATCHSIZE; i++ {
-			id, ok := <-ids
-			if !ok {
-				chanOpen = false
-			}
+		inIdes := make([]int64, static.TWITTERPATCHSIZE)
+		for i := 0; i < static.TWITTERPATCHSIZE; i++ {
+			id := <-ids
 			inIdes[i] = id
 		}
 		if len(inIdes) > 0 {
-			res, err := request.CollectUsers(inIdes)
+			res, err := request.CheckUsersLookup(inIdes)
 			if err != nil {
 				panic(err)
 			}
-			finalResult = append(finalResult, res...)
-		}
-		if !chanOpen {
-			break
+			for _, u := range res {
+				validUsersChan <- u
+			}
 		}
 	}
 }

@@ -8,8 +8,8 @@ import (
 	"github.com/tarekbadrshalaan/anaconda"
 )
 
-// CollectUsers :
-func CollectUsers(ids []int64) ([]anaconda.User, error) {
+// CheckUsersLookup :
+func CheckUsersLookup(ids []int64) ([]anaconda.User, error) {
 	result := []anaconda.User{}
 	usersProfile, err := twAPI.GetUsersLookupByIds(ids, nil)
 	if err != nil {
@@ -23,8 +23,8 @@ func CollectUsers(ids []int64) ([]anaconda.User, error) {
 	return result, nil
 }
 
-// CollectUserData :
-func CollectUserData(userID int64, Ids chan int64) error {
+// UserFollowersFollowing :
+func UserFollowersFollowing(userID int64, Ids chan int64) error {
 	c := config.Configuration()
 	if c.Following {
 		// Collect User Following
