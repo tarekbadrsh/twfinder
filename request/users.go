@@ -2,6 +2,7 @@ package request
 
 import (
 	"net/url"
+	"strconv"
 	"twfinder/config"
 	"twfinder/finder"
 
@@ -24,15 +25,21 @@ func CheckUsersLookup(ids []int64) ([]anaconda.User, error) {
 }
 
 // UserFollowersFollowing :
-func UserFollowersFollowing(userID int64, Ids chan int64) error {
+func UserFollowersFollowing(username string, userID int64, Ids chan int64) error {
 	c := config.Configuration()
+	v := url.Values{}
+	if userID != 0 {
+		v.Set("user_id", strconv.FormatInt(userID, 10))
+	}
+	if username != "" {
+		v.Set("screen_name", username)
+	}
 	if c.Following {
 		// Collect User Following
-		v := url.Values{}
 		nextCursor := "-1"
 		for {
 			v.Set("cursor", nextCursor)
-			cursor, err := twAPI.GetFriendsUser(userID, v)
+			cursor, err := twAPI.GetFriendsIds(v)
 			if err != nil {
 				return err
 			}
@@ -48,11 +55,10 @@ func UserFollowersFollowing(userID int64, Ids chan int64) error {
 
 	if c.Followers {
 		// Collect User Followers
-		v := url.Values{}
 		nextCursor := "-1"
 		for {
 			v.Set("cursor", nextCursor)
-			cursor, err := twAPI.GetFollowersUser(userID, v)
+			cursor, err := twAPI.GetFollowersIds(v)
 			if err != nil {
 				return err
 			}
@@ -65,7 +71,5 @@ func UserFollowersFollowing(userID int64, Ids chan int64) error {
 			}
 		}
 	}
-
-	close(Ids)
 	return nil
 }

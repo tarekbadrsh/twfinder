@@ -24,6 +24,7 @@ type Config struct {
 	SearchCriteria    SearchCriteria `json:"SEARCH_CRITERIA" envconfig:"SEARCH_CRITERIA"`
 	Following         bool           `json:"FOLLOWING" envconfig:"FOLLOWING"`
 	Followers         bool           `json:"FOLLOWERS" envconfig:"FOLLOWERS"`
+	Recursive         bool           `json:"RECURSIVE" envconfig:"RECURSIVE"`
 }
 
 // SearchCriteria : application Search Criteria
