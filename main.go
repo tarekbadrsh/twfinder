@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"twfinder/config"
 	"twfinder/finder"
 	"twfinder/pipeline"
 	"twfinder/request"
@@ -11,7 +10,7 @@ import (
 
 func main() {
 	/* configuration initialize start */
-	c := config.Configuration()
+	// c := config.Configuration()
 	/* configuration initialize end */
 
 	/* finder build start */
@@ -23,7 +22,7 @@ func main() {
 	/* build TwitterAPI end */
 
 	/* start Pipline */
-	pip := pipeline.NewPipeline(c.SearchUser)
+	pip := pipeline.NewPipeline()
 	pip.Start()
 	/* start Pipline */
 

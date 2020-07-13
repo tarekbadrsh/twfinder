@@ -16,15 +16,16 @@ var (
 
 // Config : application configuration
 type Config struct {
-	ConsumerKey       string         `json:"CONSUMER_KEY" envconfig:"CONSUMER_KEY"`
-	ConsumerSecret    string         `json:"CONSUMER_SECRET" envconfig:"CONSUMER_SECRET"`
-	AccessToken       string         `json:"ACCESS_TOKEN" envconfig:"ACCESS_TOKEN"`
-	AccessTokenSecret string         `json:"ACCESS_TOKEN_SECRET" envconfig:"ACCESS_TOKEN_SECRET"`
-	SearchUser        string         `json:"SEARCH_USER" envconfig:"SEARCH_USER"`
-	SearchCriteria    SearchCriteria `json:"SEARCH_CRITERIA" envconfig:"SEARCH_CRITERIA"`
-	Following         bool           `json:"FOLLOWING" envconfig:"FOLLOWING"`
-	Followers         bool           `json:"FOLLOWERS" envconfig:"FOLLOWERS"`
-	Recursive         bool           `json:"RECURSIVE" envconfig:"RECURSIVE"`
+	ConsumerKey             string         `json:"CONSUMER_KEY" envconfig:"CONSUMER_KEY"`
+	ConsumerSecret          string         `json:"CONSUMER_SECRET" envconfig:"CONSUMER_SECRET"`
+	AccessToken             string         `json:"ACCESS_TOKEN" envconfig:"ACCESS_TOKEN"`
+	AccessTokenSecret       string         `json:"ACCESS_TOKEN_SECRET" envconfig:"ACCESS_TOKEN_SECRET"`
+	SearchUser              string         `json:"SEARCH_USER" envconfig:"SEARCH_USER"`
+	SearchCriteria          SearchCriteria `json:"SEARCH_CRITERIA" envconfig:"SEARCH_CRITERIA"`
+	Following               bool           `json:"FOLLOWING" envconfig:"FOLLOWING"`
+	Followers               bool           `json:"FOLLOWERS" envconfig:"FOLLOWERS"`
+	Recursive               bool           `json:"RECURSIVE" envconfig:"RECURSIVE"`
+	ContiueSuccessUsersOnly bool           `json:"CONTINUE_SUCCESS_USERS_ONLY" envconfig:"CONTINUE_SUCCESS_USERS_ONLY"`
 }
 
 // SearchCriteria : application Search Criteria

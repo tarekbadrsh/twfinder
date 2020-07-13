@@ -23,5 +23,6 @@ func RegisterStorage(storage IStorage) IStorage {
 
 // Store :
 func Store() {
+	initializeCache()
 	intStorage.Store()
 }

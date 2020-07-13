@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"fmt"
+	"twfinder/config"
 	"twfinder/request"
 	"twfinder/static"
 	"twfinder/storage"
@@ -15,16 +16,14 @@ type Pipeline struct {
 	InputUsersIdsChn chan int64
 	ValidUsersChan   chan anaconda.User
 	UsersQueue       []int64
-	StartUser        string
 }
 
 // NewPipeline :
-func NewPipeline(startUser string) *Pipeline {
+func NewPipeline() *Pipeline {
 	return &Pipeline{
 		InputUsersIdsChn: make(chan int64, static.TWITTERPATCHSIZE),
 		ValidUsersChan:   make(chan anaconda.User, static.RESULTPATCHSIZE),
 		UsersQueue:       make([]int64, 0),
-		StartUser:        startUser,
 	}
 }
 
@@ -50,12 +49,26 @@ func (p *Pipeline) Start() {
 
 // ExecuteBatchs :
 func (p *Pipeline) ExecuteBatchs() {
+	c := config.Configuration()
 	for {
 		inIdes := make([]int64, static.TWITTERPATCHSIZE)
 		for i := 0; i < static.TWITTERPATCHSIZE; i++ {
 			id := <-p.InputUsersIdsChn
-			inIdes[i] = id
+			if !storage.CheckIDExist(id) {
+				inIdes[i] = id
+			} else {
+				fmt.Printf("user alread exsit %v len(%v)\n", id, storage.CacheSize())
+			}
 		}
+
+		if !c.ContiueSuccessUsersOnly {
+			for _, u := range inIdes {
+				if len(p.UsersQueue) < static.TWITTERPATCHSIZE {
+					p.AddUser(u)
+				}
+			}
+		}
+
 		if len(inIdes) > 0 {
 			res, err := request.CheckUsersLookup(inIdes)
 			if err != nil {
@@ -64,8 +77,10 @@ func (p *Pipeline) ExecuteBatchs() {
 			}
 			for _, u := range res {
 				p.ValidUsersChan <- u
-				if len(p.UsersQueue) < 100 {
-					p.AddUser(u.Id)
+				if c.ContiueSuccessUsersOnly {
+					if len(p.UsersQueue) < static.TWITTERPATCHSIZE {
+						p.AddUser(u.Id)
+					}
 				}
 			}
 		}
@@ -74,20 +89,23 @@ func (p *Pipeline) ExecuteBatchs() {
 
 // CollectUsers :
 func (p *Pipeline) CollectUsers() {
+	c := config.Configuration()
 	// First User
-	err := request.UserFollowersFollowing(p.StartUser, 0, p.InputUsersIdsChn)
+	err := request.UserFollowersFollowing(c.SearchUser, 0, p.InputUsersIdsChn)
 	if err != nil {
 		// todo add logger ...
 		panic(err)
 	}
-	for {
-		nextUser := p.NextUser()
-		fmt.Println("========================================================================")
-		fmt.Printf("start new user %v\n", nextUser)
-		err := request.UserFollowersFollowing("", nextUser, p.InputUsersIdsChn)
-		if err != nil {
-			// todo add logger ...
-			panic(err)
+	if c.Recursive {
+		for {
+			nextUser := p.NextUser()
+			fmt.Println("========================================================================")
+			fmt.Printf("start new user %v\n", nextUser)
+			err := request.UserFollowersFollowing("", nextUser, p.InputUsersIdsChn)
+			if err != nil {
+				// todo add logger ...
+				panic(err)
+			}
 		}
 	}
 }

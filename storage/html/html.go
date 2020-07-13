@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"text/template"
-	"time"
 	"twfinder/static"
 	"twfinder/storage"
 
@@ -15,6 +14,14 @@ type html struct {
 	tmpl       *template.Template
 	storageDir string
 	usersChan  chan anaconda.User
+	startFile  int
+}
+
+// StorageObj :
+type StorageObj struct {
+	Users        []anaconda.User
+	PreviousPage int
+	NextPage     int
 }
 
 // BuildHTMLStore :
@@ -27,27 +34,44 @@ func BuildHTMLStore(storageDir string, usersChan chan anaconda.User) (storage.IS
 	return h, nil
 }
 
-// Store :
-// func (h *html) Store(filepath string, tmp *template.Template, data interface{}) error {
-func (h *html) Store() {
+func (h *html) MkStoragedir() {
 	err := os.Mkdir(h.storageDir, os.ModePerm)
 	if err != nil {
+		// todo add logger ...
 		fmt.Println(err)
 	}
+	for i := 1; ; i++ {
+		fname := fmt.Sprintf("result/%v.html", i)
+		if _, err := os.Stat(fname); err != nil {
+			h.startFile = i
+			return
+		}
+	}
+}
+
+// Store :
+func (h *html) Store() {
+	h.MkStoragedir()
+	counter := h.startFile
 	for {
-		fName := fmt.Sprintf("%v/%v.html", h.storageDir, time.Now().Unix())
+		str := StorageObj{
+			PreviousPage: counter - 1,
+			NextPage:     counter + 1,
+			Users:        []anaconda.User{},
+		}
+		fName := fmt.Sprintf("%v/%v.html", h.storageDir, counter)
 		f, err := os.Create(fName)
 		if err != nil {
 			fmt.Println(err)
 			f.Close()
 			continue
 		}
-		res := []anaconda.User{}
 		for i := 0; i < static.RESULTPATCHSIZE; i++ {
 			u := <-h.usersChan
-			res = append(res, u)
+			str.Users = append(str.Users, u)
 		}
-		h.tmpl.Execute(f, res)
+		h.tmpl.Execute(f, str)
 		f.Close()
+		counter++
 	}
 }

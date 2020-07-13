@@ -50,5 +50,7 @@
         "VERIFIED": true
     },
     "FOLLOWING": true,
-    "FOLLOWERS": false
+    "FOLLOWERS": false,
+    "RECURSIVE": true,
+    "CONTINUE_SUCCESS_USERS_ONLY": false
 }
