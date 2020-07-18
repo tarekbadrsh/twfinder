@@ -56,8 +56,6 @@ func (p *Pipeline) ExecuteBatchs() {
 			id := <-p.InputUsersIdsChn
 			if !storage.CheckIDExist(id) {
 				inIdes[i] = id
-			} else {
-				fmt.Printf("user alread exsit %v len(%v)\n", id, storage.CacheSize())
 			}
 		}
 
