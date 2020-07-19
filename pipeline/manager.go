@@ -1,9 +1,11 @@
 package pipeline
 
 import (
+	"fmt"
 	"twfinder/config"
 	"twfinder/finder"
 	"twfinder/request"
+	"twfinder/static"
 	"twfinder/storage"
 	"twfinder/storage/html"
 
@@ -12,89 +14,74 @@ import (
 
 // Pipeline :
 type Pipeline struct {
-	userInvstChn   chan int64
-	userDetailsChn chan anaconda.User
-	validUserChn   chan anaconda.User
-
-	// InputUsersIdsChn chan int64
-	// ValidUsersChan   chan anaconda.User
-	// UsersQueue       []int64
+	InputUserIdsChn chan int64
+	userInvstChn    chan int64
+	userDetailsChn  chan anaconda.User
+	validUserChn    chan anaconda.User
 }
 
 // NewPipeline :
 func NewPipeline() *Pipeline {
 	return &Pipeline{
-		userInvstChn:   make(chan int64),
-		userDetailsChn: make(chan anaconda.User),
-		validUserChn:   make(chan anaconda.User),
-
-		// InputUsersIdsChn: make(chan int64, static.TWITTERPATCHSIZE),
-		// ValidUsersChan:   make(chan anaconda.User, static.RESULTPATCHSIZE),
-		// UsersQueue:       make([]int64, 0),
+		InputUserIdsChn: make(chan int64),
+		userInvstChn:    make(chan int64, 100),
+		userDetailsChn:  make(chan anaconda.User),
+		validUserChn:    make(chan anaconda.User),
 	}
 }
 
-// // Start :
-// func (p *Pipeline) Start() {
-// 	go p.ExecuteBatchs()
-
-// 	/* Collect Users start */
-// 	go p.CollectUsers()
-// 	/* Collect Users end */
-
-// 	/* Store Result start */
-// 	stor, err := html.BuildHTMLStore("result", p.ValidUsersChan)
-// 	if err != nil {
-// 		// todo add logger ...
-// 		panic(err)
-// 	}
-// 	storage.RegisterStorage(stor)
-// 	go storage.Store()
-// 	/* Store Result end */
-
-// }
-
 // Start :
 func (p *Pipeline) Start() {
+	go p.getUsersDetailsBatches()
+
 	go p.getUserFollowersFollowing()
 
 	go p.checkValidateUser()
 
 	go p.storeResult()
+}
 
-	// /* Collect Users start */
-	// go p.CollectUsers()
-	// /* Collect Users end */
+func (p *Pipeline) getUsersDetailsBatches() {
+	for {
+		inIdes := make([]int64, static.TWITTERPATCHSIZE)
+		for i := 0; i < static.TWITTERPATCHSIZE; i++ {
+			id := <-p.InputUserIdsChn
+			if storage.CheckIDExist(id) {
+				i--
+				continue
+			}
+			inIdes[i] = id
+		}
 
-	// /* Store Result start */
-	// stor, err := html.BuildHTMLStore("result", p.ValidUsersChan)
-	// if err != nil {
-	// 	// todo add logger ...
-	// 	panic(err)
-	// }
-	// storage.RegisterStorage(stor)
-	// go storage.Store()
-	// /* Store Result end */
-
+		if len(inIdes) > 0 {
+			res, err := request.GetUsersLookup(inIdes)
+			if err != nil {
+				// todo add logger ...
+				panic(err)
+			}
+			for _, u := range res {
+				p.userDetailsChn <- u
+			}
+		}
+	}
 }
 
 func (p *Pipeline) getUserFollowersFollowing() {
 	c := config.Configuration()
 	// First User
-	err := request.UserFollowersFollowing(c.SearchUser, 0, p.userDetailsChn)
+	err := request.UserFollowersFollowing(c.SearchUser, 0, p.InputUserIdsChn)
 	if err != nil {
 		// todo add logger ...
 		panic(err)
 	}
 
-	if c.Recursive {
-		for {
-			nextUser := <-p.userInvstChn
-			err := request.UserFollowersFollowing("", nextUser, p.userDetailsChn)
-			if err != nil {
-				// todo add logger ...
-				panic(err)
-			}
+	for {
+		userID := <-p.userInvstChn
+		fmt.Printf("\n\n-------------------- Start New User %v --------------------\n", userID)
+		err := request.UserFollowersFollowing("", userID, p.InputUserIdsChn)
+		if err != nil {
+			// todo add logger ...
+			panic(err)
 		}
 	}
 }
@@ -103,14 +90,18 @@ func (p *Pipeline) checkValidateUser() {
 	c := config.Configuration()
 	for {
 		user := <-p.userDetailsChn
-		if finder.CheckUser(&user) {
+		valid := finder.CheckUserCriteria(&user)
+		if valid {
+			fmt.Printf("MATCH >> >>>>>>>>>>>>>> https://twitter.com/%v\n", user.ScreenName)
 			p.validUserChn <- user
-			if c.ContiueSuccessUsersOnly {
-				p.userInvstChn <- user.Id
-				continue
+		}
+
+		if (c.Recursive && c.RecursiveSuccessUsersOnly && valid) || (c.Recursive && !c.RecursiveSuccessUsersOnly) {
+			select {
+			case p.userInvstChn <- user.Id:
+			default:
 			}
 		}
-		p.userInvstChn <- user.Id
 	}
 }
 
@@ -124,84 +115,9 @@ func (p *Pipeline) storeResult() {
 	storage.Store()
 }
 
-// // ExecuteBatchs :
-// func (p *Pipeline) ExecuteBatchs() {
-// 	c := config.Configuration()
-// 	for {
-// 		inIdes := make([]int64, static.TWITTERPATCHSIZE)
-// 		for i := 0; i < static.TWITTERPATCHSIZE; i++ {
-// 			id := <-p.InputUsersIdsChn
-// 			if !storage.CheckIDExist(id) {
-// 				inIdes[i] = id
-// 			}
-// 		}
-
-// 		if !c.ContiueSuccessUsersOnly {
-// 			for _, u := range inIdes {
-// 				if len(p.UsersQueue) < static.TWITTERPATCHSIZE {
-// 					p.AddUser(u)
-// 				}
-// 			}
-// 		}
-
-// 		if len(inIdes) > 0 {
-// 			res, err := request.CheckUsersLookup(inIdes)
-// 			if err != nil {
-// 				// todo add logger ...
-// 				panic(err)
-// 			}
-// 			for _, u := range res {
-// 				p.ValidUsersChan <- u
-// 				if c.ContiueSuccessUsersOnly {
-// 					if len(p.UsersQueue) < static.TWITTERPATCHSIZE {
-// 						p.AddUser(u.Id)
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
-// }
-
-// // CollectUsers :
-// func (p *Pipeline) CollectUsers() {
-// 	c := config.Configuration()
-// 	// First User
-// 	err := request.UserFollowersFollowing(c.SearchUser, 0, p.InputUsersIdsChn)
-// 	if err != nil {
-// 		// todo add logger ...
-// 		panic(err)
-// 	}
-// 	if c.Recursive {
-// 		for {
-// 			nextUser := p.NextUser()
-// 			fmt.Println("========================================================================")
-// 			fmt.Printf("start new user %v\n", nextUser)
-// 			err := request.UserFollowersFollowing("", nextUser, p.InputUsersIdsChn)
-// 			if err != nil {
-// 				// todo add logger ...
-// 				panic(err)
-// 			}
-// 		}
-// 	}
-// }
-
-// // AddUser :
-// func (p *Pipeline) AddUser(userID int64) {
-// 	// Push to the queue
-// 	p.UsersQueue = append(p.UsersQueue, userID)
-// }
-
-// // NextUser :
-// func (p *Pipeline) NextUser() int64 {
-// 	// Top (just get next element, don't remove it)
-// 	userID := p.UsersQueue[0]
-// 	// Discard top element
-// 	p.UsersQueue = p.UsersQueue[1:]
-// 	return userID
-// }
-
 // Close :
 func (p *Pipeline) Close() {
+	close(p.InputUserIdsChn)
 	close(p.userInvstChn)
 	close(p.userDetailsChn)
 	close(p.validUserChn)
