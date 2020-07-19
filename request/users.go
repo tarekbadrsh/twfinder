@@ -24,9 +24,60 @@ func CheckUsersLookup(ids []int64) ([]anaconda.User, error) {
 	return result, nil
 }
 
+// // UserFollowersFollowing :
+// func UserFollowersFollowing(username string, userID int64, Ids chan int64) error {
+// 	c := config.Configuration()
+// 	v := url.Values{}
+// 	if userID != 0 {
+// 		v.Set("user_id", strconv.FormatInt(userID, 10))
+// 	}
+// 	if username != "" {
+// 		v.Set("screen_name", username)
+// 	}
+// 	if c.Following {
+// 		// Collect User Following
+// 		nextCursor := "-1"
+// 		for {
+// 			v.Set("cursor", nextCursor)
+// 			cursor, err := twAPI.GetFriendsIds(v)
+// 			if err != nil {
+// 				return err
+// 			}
+// 			for _, id := range cursor.Ids {
+// 				Ids <- id
+// 			}
+// 			nextCursor = cursor.Next_cursor_str
+// 			if nextCursor == "0" {
+// 				break
+// 			}
+// 		}
+// 	}
+
+// 	if c.Followers {
+// 		// Collect User Followers
+// 		nextCursor := "-1"
+// 		for {
+// 			v.Set("cursor", nextCursor)
+// 			cursor, err := twAPI.GetFollowersIds(v)
+// 			if err != nil {
+// 				return err
+// 			}
+// 			for _, id := range cursor.Ids {
+// 				Ids <- id
+// 			}
+// 			nextCursor = cursor.Next_cursor_str
+// 			if nextCursor == "0" {
+// 				break
+// 			}
+// 		}
+// 	}
+// 	return nil
+// }
+
 // UserFollowersFollowing :
-func UserFollowersFollowing(username string, userID int64, Ids chan int64) error {
+func UserFollowersFollowing(username string, userID int64, userDetailsChn chan<- anaconda.User) error {
 	c := config.Configuration()
+
 	v := url.Values{}
 	if userID != 0 {
 		v.Set("user_id", strconv.FormatInt(userID, 10))
@@ -34,17 +85,18 @@ func UserFollowersFollowing(username string, userID int64, Ids chan int64) error
 	if username != "" {
 		v.Set("screen_name", username)
 	}
+
 	if c.Following {
 		// Collect User Following
 		nextCursor := "-1"
 		for {
 			v.Set("cursor", nextCursor)
-			cursor, err := twAPI.GetFriendsIds(v)
+			cursor, err := twAPI.GetFriendsList(v)
 			if err != nil {
 				return err
 			}
-			for _, id := range cursor.Ids {
-				Ids <- id
+			for _, user := range cursor.Users {
+				userDetailsChn <- user
 			}
 			nextCursor = cursor.Next_cursor_str
 			if nextCursor == "0" {
@@ -58,12 +110,12 @@ func UserFollowersFollowing(username string, userID int64, Ids chan int64) error
 		nextCursor := "-1"
 		for {
 			v.Set("cursor", nextCursor)
-			cursor, err := twAPI.GetFollowersIds(v)
+			cursor, err := twAPI.GetFollowersList(v)
 			if err != nil {
 				return err
 			}
-			for _, id := range cursor.Ids {
-				Ids <- id
+			for _, user := range cursor.Users {
+				userDetailsChn <- user
 			}
 			nextCursor = cursor.Next_cursor_str
 			if nextCursor == "0" {
