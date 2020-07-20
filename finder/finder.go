@@ -1,7 +1,6 @@
 package finder
 
 import (
-	"fmt"
 	"strings"
 	"sync"
 	"twfinder/config"
@@ -34,35 +33,14 @@ type finder struct {
 	filters []filter
 }
 
-// CheckUserList : check if list of users apply for configuration criteria
-func CheckUserList(users []anaconda.User) []anaconda.User {
-	result := []anaconda.User{}
-	for _, u := range users {
-		if CheckUser(&u) {
-			result = append(result, u)
-		}
-	}
-	return result
-}
-
-// CheckUser : check if the input user apply for configuration criteria
-func CheckUser(user *anaconda.User) bool {
-	match := true
-	lstFunName := []string{}
+// CheckUserCriteria : check if the input user apply for configuration criteria
+func CheckUserCriteria(user *anaconda.User) bool {
 	for _, v := range intFinder.filters {
-		funNme, fmatch := v(user)
-		if fmatch {
-			lstFunName = append(lstFunName, funNme)
-		} else {
-			match = false
+		if _, fmatch := v(user); !fmatch {
+			return false
 		}
 	}
-	if match {
-		fmt.Printf("MATCH >> >>>>>>>>>>>>>> https://twitter.com/%v\n", user.ScreenName)
-	} //else if len(lstFunName) > 0 {
-	// fmt.Printf("NOT MATCH >> >>>>>>>>>>>>>> https://twitter.com/%v | VALID-FOR(%v)\n", user.ScreenName, lstFunName)
-	//}
-	return match
+	return true
 }
 
 // BuildSearchCriteria : build interanl search criteria

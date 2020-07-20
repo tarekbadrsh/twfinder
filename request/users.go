@@ -4,29 +4,23 @@ import (
 	"net/url"
 	"strconv"
 	"twfinder/config"
-	"twfinder/finder"
 
 	"github.com/tarekbadrshalaan/anaconda"
 )
 
-// CheckUsersLookup :
-func CheckUsersLookup(ids []int64) ([]anaconda.User, error) {
-	result := []anaconda.User{}
+// GetUsersLookup :
+func GetUsersLookup(ids []int64) ([]anaconda.User, error) {
 	usersProfile, err := twAPI.GetUsersLookupByIds(ids, nil)
 	if err != nil {
 		return nil, err
 	}
-	for _, user := range usersProfile {
-		if finder.CheckUser(&user) {
-			result = append(result, user)
-		}
-	}
-	return result, nil
+	return usersProfile, nil
 }
 
 // UserFollowersFollowing :
-func UserFollowersFollowing(username string, userID int64, Ids chan int64) error {
+func UserFollowersFollowing(username string, userID int64, InputUserIdsChn chan<- int64) error {
 	c := config.Configuration()
+
 	v := url.Values{}
 	if userID != 0 {
 		v.Set("user_id", strconv.FormatInt(userID, 10))
@@ -34,6 +28,7 @@ func UserFollowersFollowing(username string, userID int64, Ids chan int64) error
 	if username != "" {
 		v.Set("screen_name", username)
 	}
+
 	if c.Following {
 		// Collect User Following
 		nextCursor := "-1"
@@ -44,7 +39,7 @@ func UserFollowersFollowing(username string, userID int64, Ids chan int64) error
 				return err
 			}
 			for _, id := range cursor.Ids {
-				Ids <- id
+				InputUserIdsChn <- id
 			}
 			nextCursor = cursor.Next_cursor_str
 			if nextCursor == "0" {
@@ -63,7 +58,7 @@ func UserFollowersFollowing(username string, userID int64, Ids chan int64) error
 				return err
 			}
 			for _, id := range cursor.Ids {
-				Ids <- id
+				InputUserIdsChn <- id
 			}
 			nextCursor = cursor.Next_cursor_str
 			if nextCursor == "0" {
