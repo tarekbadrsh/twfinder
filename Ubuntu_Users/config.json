@@ -3,17 +3,54 @@
     "CONSUMER_SECRET": "<CONSUMER_SECRET>",
     "ACCESS_TOKEN": "<ACCESS_TOKEN>",
     "ACCESS_TOKEN_SECRET": "<ACCESS_TOKEN_SECRET>",
-    "SEARCH_USER": "MostafaNageeb",
-    "SEARCH_BIO_CONTEXT": [
-        "Develper",
-        "CEO",
-        "Linux",
-        "technology"
-    ],
-    "SEARCH_LOCATION_CONTEXT": [
-        "Berlin",
-        "Gothenburg"
-    ],
+    "SEARCH_USER": "<SEARCH_USER>",
+    "SEARCH_CRITERIA": {
+        "SEARCH_HANDLE_CONTEXT": [
+            "adam",
+            "erik"
+        ],
+        "SEARCH_NAME_CONTEXT": [
+            "dr",
+            "mr"
+        ],
+        "SEARCH_BIO_CONTEXT": [
+            "Develper",
+            "CEO",
+            "Linux",
+            "technology"
+        ],
+        "SEARCH_LOCATION_CONTEXT": [
+            "Berlin",
+            "Gothenburg"
+        ],
+        "FOLLOWERS_COUNT_BETWEEN": {
+            "FROM": 0,
+            "TO": 100000
+        },
+        "FOLLOWING_COUNT_BETWEEN": {
+            "FROM": 0,
+            "TO": 100000
+        },
+        "LIKES_COUNT_BETWEEN": {
+            "FROM": 1,
+            "TO": 100000
+        },
+        "TWEETS_COUNT_BETWEEN": {
+            "FROM": 1,
+            "TO": 100000
+        },
+        "LISTS_COUNT_BETWEEN": {
+            "FROM": 1,
+            "TO": 100000
+        },
+        "JOINED_BETWEEN": {
+            "FROM": "2000-09-22T12:42:31Z",
+            "TO": "2018-09-22T12:42:31Z"
+        },
+        "VERIFIED": true
+    },
     "FOLLOWING": true,
-    "FOLLOWERS": false
+    "FOLLOWERS": false,
+    "RECURSIVE": true,
+    "CONTINUE_SUCCESS_USERS_ONLY": true
 }
