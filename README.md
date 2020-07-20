@@ -76,7 +76,7 @@ By using Twitter API, The application start with one user and find in his (follo
 5. the result will be in *result* directory
 
 
-### Build source
+### Build From Source
 `twfinder build in golang, compile it with golang 13.0 or later`
 
 1. Build the application by run `go build .`
