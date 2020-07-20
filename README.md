@@ -61,7 +61,7 @@ By using Twitter API, The application start with one user and find in his (follo
 ## How To Use
 
 ### Windows Users 
-1. Use the prebuilt binary in for Windows Users, Download the binary from [![HERE](https://github.com/tarekbadrshalaan/twfinder/blob/master/Windows_Users/twfinder)](https://github.com/tarekbadrshalaan/twfinder/blob/master/Windows_Users/twfinder)
+1. Use the prebuilt binary in for Windows Users, Download the binary from [![HERE](https://github.com/tarekbadrshalaan/twfinder/blob/master/Windows_Users/twfinder.exe)](https://github.com/tarekbadrshalaan/twfinder/blob/master/Windows_Users/twfinder.exe)
 2. Use the configuration file to configure the app (download from  [![HERE](https://github.com/tarekbadrshalaan/twfinder/blob/master/Windows_Users/config.json)](https://github.com/tarekbadrshalaan/twfinder/blob/master/Windows_Users/config.json)) Update it with your twitter credentials in `config.json`
 3. Update the `SEARCH_CRITERIA` in with your search criteria.
 4. run the application
