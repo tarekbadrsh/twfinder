@@ -3,7 +3,7 @@
     "CONSUMER_SECRET": "<CONSUMER_SECRET>",
     "ACCESS_TOKEN": "<ACCESS_TOKEN>",
     "ACCESS_TOKEN_SECRET": "<ACCESS_TOKEN_SECRET>",
-    "SEARCH_USER": "MostafaNageeb",
+    "SEARCH_USER": "<SEARCH_USER>",
     "SEARCH_CRITERIA": {
         "SEARCH_HANDLE_CONTEXT": [
             "adam",
