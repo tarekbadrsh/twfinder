@@ -9,10 +9,6 @@ import (
 )
 
 func main() {
-	/* configuration initialize start */
-	// c := config.Configuration()
-	/* configuration initialize end */
-
 	/* finder build start */
 	finder.BuildSearchCriteria()
 	/* finder build end */

@@ -1,6 +1,10 @@
 package storage
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/tarekbadrshalaan/anaconda"
+)
 
 var (
 	// internal storage object
@@ -10,7 +14,7 @@ var (
 
 // IStorage :
 type IStorage interface {
-	Store()
+	Store(usersChan <-chan anaconda.User)
 }
 
 // RegisterStorage :
@@ -22,7 +26,7 @@ func RegisterStorage(storage IStorage) IStorage {
 }
 
 // Store :
-func Store() {
+func Store(usersChan <-chan anaconda.User) {
 	initializeCache()
-	intStorage.Store()
+	intStorage.Store(usersChan)
 }

@@ -1,4 +1,6 @@
-config.tmp
 twfinder
 .vscode
 result
+
+config.json
+.out

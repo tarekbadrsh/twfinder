@@ -106,13 +106,13 @@ func (p *Pipeline) checkValidateUser() {
 }
 
 func (p *Pipeline) storeResult() {
-	stor, err := html.BuildHTMLStore("result", p.validUserChn)
+	stor, err := html.BuildHTMLStore()
 	if err != nil {
 		// todo add logger ...
 		panic(err)
 	}
 	storage.RegisterStorage(stor)
-	storage.Store()
+	storage.Store(p.validUserChn)
 }
 
 // Close :

@@ -10,11 +10,11 @@ import (
 	"github.com/tarekbadrshalaan/anaconda"
 )
 
+const storageDir = "result"
+
 type html struct {
-	tmpl       *template.Template
-	storageDir string
-	usersChan  chan anaconda.User
-	startFile  int
+	tmpl      *template.Template
+	startFile int
 }
 
 // StorageObj :
@@ -25,33 +25,31 @@ type StorageObj struct {
 }
 
 // BuildHTMLStore :
-func BuildHTMLStore(storageDir string, usersChan chan anaconda.User) (storage.IStorage, error) {
+func BuildHTMLStore() (storage.IStorage, error) {
 	tmpl, err := template.New("model").Parse(timelineTmpl)
 	if err != nil {
 		return nil, err
 	}
-	h := &html{tmpl: tmpl, storageDir: storageDir, usersChan: usersChan}
-	return h, nil
-}
+	h := &html{tmpl: tmpl}
 
-func (h *html) MkStoragedir() {
-	err := os.Mkdir(h.storageDir, os.ModePerm)
+	// create storage directory
+	err = os.Mkdir(storageDir, os.ModePerm)
 	if err != nil {
 		// todo add logger ...
 		fmt.Println(err)
 	}
 	for i := 1; ; i++ {
-		fname := fmt.Sprintf("result/%v.html", i)
+		fname := fmt.Sprintf("%v/%v.html", storageDir, i)
 		if _, err := os.Stat(fname); err != nil {
 			h.startFile = i
-			return
+			break
 		}
 	}
+	return h, nil
 }
 
 // Store :
-func (h *html) Store() {
-	h.MkStoragedir()
+func (h *html) Store(usersChan <-chan anaconda.User) {
 	counter := h.startFile
 	for {
 		str := StorageObj{
@@ -59,7 +57,7 @@ func (h *html) Store() {
 			NextPage:     counter + 1,
 			Users:        []anaconda.User{},
 		}
-		fName := fmt.Sprintf("%v/%v.html", h.storageDir, counter)
+		fName := fmt.Sprintf("%v/%v.html", storageDir, counter)
 		f, err := os.Create(fName)
 		if err != nil {
 			fmt.Println(err)
@@ -67,7 +65,7 @@ func (h *html) Store() {
 			continue
 		}
 		for i := 0; i < static.RESULTPATCHSIZE; i++ {
-			u := <-h.usersChan
+			u := <-usersChan
 			str.Users = append(str.Users, u)
 		}
 		h.tmpl.Execute(f, str)
