@@ -1,6 +1,8 @@
-twfinder
 .vscode
 result
 
+twfinder
 config.json
 .out
+
+logs

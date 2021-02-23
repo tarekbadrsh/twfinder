@@ -1,16 +1,27 @@
 package main
 
 import (
-	"fmt"
 	"os"
+	"twfinder/config"
 	"twfinder/finder"
+	"twfinder/logger"
 	"twfinder/pipeline"
 	"twfinder/request"
 )
 
 func main() {
+	/* configuration initialize start */
+	c := config.Configuration()
+	/* configuration initialize end */
+
+	/* logger initialize start */
+	mylogger := logger.NewZapLogger()
+	logger.InitializeLogger(&mylogger)
+	defer logger.Close()
+	/* logger initialize end */
+
 	/* finder build start */
-	finder.BuildSearchCriteria()
+	finder.BuildSearchCriteria(c)
 	/* finder build end */
 
 	/* build TwitterAPI start */
@@ -25,6 +36,6 @@ func main() {
 	// shutdown the application gracefully
 	cancelChan := make(chan os.Signal, 1)
 	sig := <-cancelChan
-	fmt.Printf("Caught SIGTERM %v\n", sig)
+	logger.Infof("Caught SIGTERM %v\n", sig)
 	pip.Close()
 }

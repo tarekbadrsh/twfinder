@@ -44,9 +44,8 @@ func CheckUserCriteria(user *anaconda.User) bool {
 }
 
 // BuildSearchCriteria : build interanl search criteria
-func BuildSearchCriteria() {
+func BuildSearchCriteria(c config.Config) {
 	buildFinderOnce.Do(func() {
-		c := config.Configuration()
 		intFinder.searchHandleContext = c.SearchCriteria.SearchHandleContext
 		if len(intFinder.searchHandleContext) > 1 {
 			intFinder.filters = append(intFinder.filters, handleFilter)
@@ -97,10 +96,12 @@ func BuildSearchCriteria() {
 func handleFilter(u *anaconda.User) (string, bool) {
 	match := false
 	for _, keyword := range intFinder.searchHandleContext {
+		if strings.HasPrefix(keyword, "-") && strings.Contains(strings.ToLower(u.ScreenName), strings.ToLower(keyword[1:])) {
+			match = false
+			break
+		}
 		if strings.Contains(strings.ToLower(u.ScreenName), strings.ToLower(keyword)) {
 			match = true
-
-			break
 		}
 	}
 	return "Handle", match
@@ -109,9 +110,12 @@ func handleFilter(u *anaconda.User) (string, bool) {
 func nameFilter(u *anaconda.User) (string, bool) {
 	match := false
 	for _, keyword := range intFinder.searchNameContext {
+		if strings.HasPrefix(keyword, "-") && strings.Contains(strings.ToLower(u.Name), strings.ToLower(keyword[1:])) {
+			match = false
+			break
+		}
 		if strings.Contains(strings.ToLower(u.Name), strings.ToLower(keyword)) {
 			match = true
-			break
 		}
 	}
 	return "Name", match
@@ -120,9 +124,12 @@ func nameFilter(u *anaconda.User) (string, bool) {
 func bioFilter(u *anaconda.User) (string, bool) {
 	match := false
 	for _, keyword := range intFinder.searchBioContext {
+		if strings.HasPrefix(keyword, "-") && strings.Contains(strings.ToLower(u.Description), strings.ToLower(keyword[1:])) {
+			match = false
+			break
+		}
 		if strings.Contains(strings.ToLower(u.Description), strings.ToLower(keyword)) {
 			match = true
-			break
 		}
 	}
 	return "BIO", match
@@ -131,9 +138,12 @@ func bioFilter(u *anaconda.User) (string, bool) {
 func locationFilter(u *anaconda.User) (string, bool) {
 	match := false
 	for _, keyword := range intFinder.searchLocationContext {
+		if strings.HasPrefix(keyword, "-") && strings.Contains(strings.ToLower(u.Location), strings.ToLower(keyword[1:])) {
+			match = false
+			break
+		}
 		if strings.Contains(strings.ToLower(u.Location), strings.ToLower(keyword)) {
 			match = true
-			break
 		}
 	}
 	return "LOCATION", match

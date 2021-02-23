@@ -39,6 +39,8 @@ a:hover {
 				<a class="twitter-timeline" data-tweet-limit="1" data-width="700" data-dnt="true" data-theme="dark" href="https://twitter.com/{{ .ScreenName}}"></a>
 			</blockquote>
 		{{end}}
+		<a href="{{.PreviousPage}}.html" class="previous">&laquo; Previous</a>
+		<a href="{{.NextPage}}.html" class="next">Next &raquo;</a>
 		<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
     </div>
 </body> 

@@ -1,9 +1,10 @@
 package pipeline
 
 import (
-	"fmt"
+	"time"
 	"twfinder/config"
 	"twfinder/finder"
+	"twfinder/logger"
 	"twfinder/request"
 	"twfinder/static"
 	"twfinder/storage"
@@ -56,8 +57,7 @@ func (p *Pipeline) getUsersDetailsBatches() {
 		if len(inIdes) > 0 {
 			res, err := request.GetUsersLookup(inIdes)
 			if err != nil {
-				// todo add logger ...
-				panic(err)
+				logger.Error(err)
 			}
 			for _, u := range res {
 				p.userDetailsChn <- u
@@ -71,17 +71,23 @@ func (p *Pipeline) getUserFollowersFollowing() {
 	// First User
 	err := request.UserFollowersFollowing(c.SearchUser, 0, p.InputUserIdsChn)
 	if err != nil {
-		// todo add logger ...
-		panic(err)
+		logger.Error(err)
 	}
 
 	for {
 		userID := <-p.userInvstChn
-		fmt.Printf("\n\n-------------------- Start New User %v --------------------\n", userID)
+		logger.Infof("[New User] %v", userID)
 		err := request.UserFollowersFollowing("", userID, p.InputUserIdsChn)
-		if err != nil {
-			// todo add logger ...
-			panic(err)
+		trial := 5
+		for err != nil {
+			trial--
+			logger.Errorf("%v\n>>> The application will try again after 1 minutes with user:%v", err, userID)
+			time.Sleep(1 * time.Minute)
+			err = request.UserFollowersFollowing("", userID, p.InputUserIdsChn)
+			if trial < 1 {
+				err = nil
+				logger.Errorf("After 5 trials ... The application will skip user:%v", userID)
+			}
 		}
 	}
 }
@@ -92,7 +98,7 @@ func (p *Pipeline) checkValidateUser() {
 		user := <-p.userDetailsChn
 		valid := finder.CheckUserCriteria(&user)
 		if valid {
-			fmt.Printf("MATCH >> >>>>>>>>>>>>>> https://twitter.com/%v\n", user.ScreenName)
+			logger.Infof("[MATCH] https://twitter.com/%v", user.ScreenName)
 			p.validUserChn <- user
 		}
 
@@ -108,8 +114,7 @@ func (p *Pipeline) checkValidateUser() {
 func (p *Pipeline) storeResult() {
 	stor, err := html.BuildHTMLStore()
 	if err != nil {
-		// todo add logger ...
-		panic(err)
+		logger.Error(err)
 	}
 	storage.RegisterStorage(stor)
 	storage.Store(p.validUserChn)

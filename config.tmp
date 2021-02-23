@@ -52,5 +52,5 @@
     "FOLLOWING": true,
     "FOLLOWERS": false,
     "RECURSIVE": true,
-    "CONTINUE_SUCCESS_USERS_ONLY": true
+    "RECURSIVE_SUCCESS_USERS_ONLY": true
 }

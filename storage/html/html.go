@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"text/template"
+	"twfinder/logger"
 	"twfinder/static"
 	"twfinder/storage"
 
@@ -35,8 +36,7 @@ func BuildHTMLStore() (storage.IStorage, error) {
 	// create storage directory
 	err = os.Mkdir(storageDir, os.ModePerm)
 	if err != nil {
-		// todo add logger ...
-		fmt.Println(err)
+		logger.Warn(err)
 	}
 	for i := 1; ; i++ {
 		fname := fmt.Sprintf("%v/%v.html", storageDir, i)
