@@ -10,6 +10,13 @@ import (
 )
 
 func main() {
+	// win := frontend.Gui()
+	// // Create and start a GUI server (omitting error check)
+	// server := server.NewServer("guitest", "localhost:8081")
+	// server.SetText("Test GUI App")
+	// server.AddWin(win)
+	// server.Start("") // Also opens windows list in browser
+
 	/* configuration initialize start */
 	c := config.Configuration()
 	/* configuration initialize end */
