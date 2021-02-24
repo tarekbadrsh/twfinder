@@ -4,18 +4,20 @@ import (
 	"os"
 	"twfinder/config"
 	"twfinder/finder"
+	"twfinder/gui/frontend"
+	"twfinder/gui/server"
 	"twfinder/logger"
 	"twfinder/pipeline"
 	"twfinder/request"
 )
 
 func main() {
-	// win := frontend.Gui()
-	// // Create and start a GUI server (omitting error check)
-	// server := server.NewServer("guitest", "localhost:8081")
-	// server.SetText("Test GUI App")
-	// server.AddWin(win)
-	// server.Start("") // Also opens windows list in browser
+	win := frontend.Gui()
+	// Create and start a GUI server (omitting error check)
+	server := server.NewServer("guitest", "localhost:8081")
+	server.SetText("Test GUI App")
+	server.AddWin(win)
+	server.Start("") // Also opens windows list in browser
 
 	/* configuration initialize start */
 	c := config.Configuration()

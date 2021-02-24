@@ -134,45 +134,30 @@ func Gui() server.Window {
 	win.Add(fp)
 
 	win.Add(server.NewLabel("Search Criteria"))
-	win.Add(server.NewLabel("Search Handle Context"))
-	btnSearchAdd := server.NewButton("+")
-	win.Add(btnSearchAdd)
-	fp = server.NewHorizontalPanel()
-	btnSearchAdd.AddEHandlerFunc(func(e server.Event) {
-		// Create and add a new button...
-		btnSearchRemove := server.NewButton("-")
-		fp.Insert(btnSearchRemove, 0)
-		searchHandleContext := server.NewTextBox("")
-		fp.Insert(searchHandleContext, 0)
-		e.MarkDirty(fp)
-
-	}, server.ETypeClick)
-
-	searchHandleContext := server.NewTextBox("")
-	fp.Add(searchHandleContext)
-	btnSearchRemove := server.NewButton("-")
-	fp.Add(btnSearchRemove)
-
-	win.Add(server.NewLabel("Search Criteria"))
-	win.Add(server.NewLabel("Search Handle Context"))
+	searchHeadPanel := server.NewHorizontalPanel()
+	searchHeadPanel.Add(server.NewLabel("Search Handle Context"))
 	mybtn := server.NewButton("+")
-	win.Add(mybtn)
-	mybtnsPanel := server.NewNaturalPanel()
+	searchHeadPanel.Add(mybtn)
+	win.Add(searchHeadPanel)
+
+	mainBtnsPanel := server.NewHorizontalPanel()
+	win.Add(mainBtnsPanel)
+
 	mybtn.AddEHandlerFunc(func(e server.Event) {
-		// Create and add a new button...
-		searchHandleContext := server.NewTextBox("")
-		mybtnsPanel.Insert(searchHandleContext, 0)
+		mybtnsPanel := server.NewHorizontalPanel()
 		newbtn := server.NewButton("-")
+		searchHandleContext := server.NewTextBox("")
 		newbtn.AddEHandlerFunc(func(e server.Event) {
 			searchHandleContext.Parent().Remove(searchHandleContext)
-			e.MarkDirty(searchHandleContext)
 			mybtnsPanel.Remove(newbtn)
 			e.MarkDirty(mybtnsPanel)
 		}, server.ETypeClick)
 		mybtnsPanel.Insert(newbtn, 0)
+		mybtnsPanel.Insert(searchHandleContext, 0)
 		e.MarkDirty(mybtnsPanel)
+		mainBtnsPanel.Insert(mybtnsPanel, 0)
+		e.MarkDirty(mainBtnsPanel)
 	}, server.ETypeClick)
-	win.Add(mybtnsPanel)
 
 	fp = server.NewHorizontalPanel()
 	fp.Add(server.NewLabel("Search Name Context"))
