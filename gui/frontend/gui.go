@@ -2,6 +2,7 @@ package frontend
 
 import (
 	"fmt"
+	"twfinder/config"
 	"twfinder/gui/server"
 )
 
@@ -17,6 +18,15 @@ func (h *myButtonHandler) HandleEvent(e server.Event) {
 		b.SetToolTip(fmt.Sprintf("You've clicked %d times!", h.counter))
 		e.MarkDirty(b)
 	}
+}
+
+func newTextBox(handlerChange func(input string)) server.TextBox {
+	txtbox := server.NewTextBox("")
+	txtbox.AddSyncOnETypes(server.ETypeKeyUp)
+	txtbox.AddEHandlerFunc(func(e server.Event) {
+		handlerChange(txtbox.Text())
+	}, server.ETypeChange, server.ETypeKeyUp)
+	return txtbox
 }
 
 // Gui :
@@ -102,22 +112,29 @@ func Gui() server.Window {
 	// ---
 	//
 	win.Add(server.NewLabel("Configuration builder"))
+	conf := config.Config{}
 
 	fp := server.NewHorizontalPanel()
 	fp.Add(server.NewLabel("Consumer Key"))
-	consumerKey := server.NewTextBox("")
+	consumerKey := newTextBox(func(input string) {
+		conf.ConsumerKey = input
+	})
 	fp.Add(consumerKey)
 	win.Add(fp)
 
 	fp = server.NewHorizontalPanel()
 	fp.Add(server.NewLabel("Consumer Secret"))
-	consumerSecret := server.NewTextBox("")
+	consumerSecret := newTextBox(func(input string) {
+		conf.ConsumerSecret = input
+	})
 	fp.Add(consumerSecret)
 	win.Add(fp)
 
 	fp = server.NewHorizontalPanel()
 	fp.Add(server.NewLabel("Access Token"))
-	accessToken := server.NewTextBox("")
+	accessToken := newTextBox(func(input string) {
+		conf.AccessToken = input
+	})
 	fp.Add(accessToken)
 	win.Add(fp)
 
