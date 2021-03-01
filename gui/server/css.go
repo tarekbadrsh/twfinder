@@ -33,7 +33,9 @@ body {font-family:Arial}
 
 .gui-Table {}
 
-.gui-Label {}
+.gui-Label {
+	color: white;
+}
 
 .gui-Link {}
 

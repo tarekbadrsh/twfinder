@@ -161,7 +161,7 @@ func (w *windowImpl) RenderWin(wr Writer, s Server) {
 	w.renderDynJs(wr, s)
 	wr.Writess(`<script src="`, s.AppPath(), pathStatic, resNameStaticJs, `"></script>`)
 	wr.Writess(w.heads...)
-	wr.Writes("</head><body>")
+	wr.Writes(`</head><body style="background-color:#292F33;">`)
 
 	w.Render(wr)
 
