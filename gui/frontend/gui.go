@@ -2,6 +2,7 @@ package frontend
 
 import (
 	"fmt"
+	"math/rand"
 	"twfinder/config"
 	"twfinder/gui/server"
 )
@@ -20,19 +21,86 @@ func (h *myButtonHandler) HandleEvent(e server.Event) {
 	}
 }
 
-func newTextBox(handlerChange func(input string)) server.TextBox {
-	txtbox := server.NewTextBox("")
+var twitterConfig = config.Config{}
+
+// NewTextBox : return new text box with two way binding
+func NewTextBox(input *string) server.TextBox {
+	// func NewTextBox(handlerChange func(input string)) server.TextBox {
+	txtbox := server.NewTextBox(*input)
 	txtbox.AddSyncOnETypes(server.ETypeKeyUp)
 	txtbox.AddEHandlerFunc(func(e server.Event) {
-		handlerChange(txtbox.Text())
+		*input = txtbox.Text()
 	}, server.ETypeChange, server.ETypeKeyUp)
 	return txtbox
 }
 
+// NewArrTextBoxPanal : return new text box with two way binding
+func NewArrTextBoxPanal(panalTitle string, inputArr []string) (server.Panel, map[int]string) {
+
+	// Initialize main items
+	mainMap := make(map[int]string)
+	mainPanal := server.NewVerticalPanel()
+
+	// header
+	headerPanel := server.NewHorizontalPanel()
+	headerPanellbl := server.NewLabel(panalTitle)
+	headerPanel.Add(headerPanellbl)
+	headerPanelAddbtn := server.NewButton("+")
+	headerPanelAddbtn.AddSyncOnETypes(server.ETypeClick)
+	headerPanel.Add(headerPanelAddbtn)
+	mainPanal.Insert(headerPanel, mainPanal.CompsCount())
+
+	// printBTN := server.NewButton("Print")
+	// printBTN.AddEHandlerFunc(func(e server.Event) { fmt.Println(mainMap) }, server.ETypeClick)
+	// mainPanal.Insert(printBTN, mainPanal.CompsCount())
+
+	addInternalPanel := func(txt string, e server.Event) server.Panel {
+		internalPanel := server.NewHorizontalPanel()
+		elementID := rand.Intn(1000000000000)
+		mainMap[elementID] = txt
+		elementTxtbox := server.NewTextBox(txt)
+		elementTxtbox.AddSyncOnETypes(server.ETypeKeyUp)
+		elementTxtbox.AddEHandlerFunc(func(e server.Event) {
+			mainMap[elementID] = elementTxtbox.Text()
+		}, server.ETypeKeyUp)
+		rmvBtn := server.NewButton("-")
+		rmvBtn.AddSyncOnETypes(server.ETypeClick)
+		rmvBtn.AddEHandlerFunc(func(e server.Event) {
+			mainPanal.Remove(internalPanel)
+			e.MarkDirty(mainPanal)
+			delete(mainMap, elementID)
+		}, server.ETypeClick)
+		internalPanel.Insert(rmvBtn, 0)
+		internalPanel.Insert(elementTxtbox, 0)
+		if e != nil {
+			e.MarkDirty(internalPanel)
+		}
+		return internalPanel
+	}
+
+	// handle existing values
+	for _, v := range inputArr {
+		internalPanel := addInternalPanel(v, nil)
+		mainPanal.Insert(internalPanel, mainPanal.CompsCount())
+	}
+
+	// handel add new panel
+	headerPanelAddbtn.AddEHandlerFunc(func(e server.Event) {
+		internalPanel := addInternalPanel("", e)
+		mainPanal.Insert(internalPanel, mainPanal.CompsCount())
+		e.MarkDirty(mainPanal)
+	}, server.ETypeClick)
+
+	return mainPanal, mainMap
+}
+
 // Gui :
-func Gui() server.Window {
+func Gui(name string) server.Window {
+	twitterConfig = config.Configuration()
+
 	// Create and build a window
-	win := server.NewWindow("main", "Test GUI Window")
+	// win := server.NewWindow("main", "Test GUI Window")
+	win := server.NewWindow(name, "Test GUI Window")
 	win.Style().SetFullWidth()
 	win.SetHAlign(server.HACenter)
 	win.SetCellPadding(2)
@@ -111,36 +179,30 @@ func Gui() server.Window {
 	//
 	// ---
 	//
+
 	win.Add(server.NewLabel("Configuration builder"))
-	conf := config.Config{}
 
 	fp := server.NewHorizontalPanel()
 	fp.Add(server.NewLabel("Consumer Key"))
-	consumerKey := newTextBox(func(input string) {
-		conf.ConsumerKey = input
-	})
+	consumerKey := NewTextBox(&twitterConfig.ConsumerKey)
 	fp.Add(consumerKey)
 	win.Add(fp)
 
 	fp = server.NewHorizontalPanel()
 	fp.Add(server.NewLabel("Consumer Secret"))
-	consumerSecret := newTextBox(func(input string) {
-		conf.ConsumerSecret = input
-	})
+	consumerSecret := NewTextBox(&twitterConfig.ConsumerSecret)
 	fp.Add(consumerSecret)
 	win.Add(fp)
 
 	fp = server.NewHorizontalPanel()
 	fp.Add(server.NewLabel("Access Token"))
-	accessToken := newTextBox(func(input string) {
-		conf.AccessToken = input
-	})
+	accessToken := NewTextBox(&twitterConfig.AccessToken)
 	fp.Add(accessToken)
 	win.Add(fp)
 
 	fp = server.NewHorizontalPanel()
 	fp.Add(server.NewLabel("Access Token Secret"))
-	accessTokenSecret := server.NewTextBox("")
+	accessTokenSecret := NewTextBox(&twitterConfig.AccessTokenSecret)
 	fp.Add(accessTokenSecret)
 	win.Add(fp)
 
@@ -150,49 +212,69 @@ func Gui() server.Window {
 	fp.Add(searchUser)
 	win.Add(fp)
 
+	//
+	// ---
+	//
+
 	win.Add(server.NewLabel("Search Criteria"))
-	searchHeadPanel := server.NewHorizontalPanel()
-	searchHeadPanel.Add(server.NewLabel("Search Handle Context"))
-	mybtn := server.NewButton("+")
-	searchHeadPanel.Add(mybtn)
-	win.Add(searchHeadPanel)
 
-	mainBtnsPanel := server.NewHorizontalPanel()
-	win.Add(mainBtnsPanel)
+	//
+	// ---
+	//
 
-	mybtn.AddEHandlerFunc(func(e server.Event) {
-		mybtnsPanel := server.NewHorizontalPanel()
-		newbtn := server.NewButton("-")
-		searchHandleContext := server.NewTextBox("")
-		newbtn.AddEHandlerFunc(func(e server.Event) {
-			searchHandleContext.Parent().Remove(searchHandleContext)
-			mybtnsPanel.Remove(newbtn)
-			e.MarkDirty(mybtnsPanel)
-		}, server.ETypeClick)
-		mybtnsPanel.Insert(newbtn, 0)
-		mybtnsPanel.Insert(searchHandleContext, 0)
-		e.MarkDirty(mybtnsPanel)
-		mainBtnsPanel.Insert(mybtnsPanel, 0)
-		e.MarkDirty(mainBtnsPanel)
+	searchHandlePanal, handleMainMap := NewArrTextBoxPanal("Search Handle Context", twitterConfig.SearchCriteria.SearchHandleContext)
+	win.Add(searchHandlePanal)
+
+	//
+	// ---
+	//
+
+	searchNamePanal, nameMainMap := NewArrTextBoxPanal("Search Name Context", twitterConfig.SearchCriteria.SearchNameContext)
+	win.Add(searchNamePanal)
+
+	//
+	// ---
+	//
+
+	searchBioPanal, bioMainMap := NewArrTextBoxPanal("Search Bio Context", twitterConfig.SearchCriteria.SearchBioContext)
+	win.Add(searchBioPanal)
+
+	//
+	// ---
+	//
+
+	searchLocationPanal, locationMainMap := NewArrTextBoxPanal("Search Location Context", twitterConfig.SearchCriteria.SearchLocationContext)
+	win.Add(searchLocationPanal)
+
+	//
+	// ---
+	//
+
+	fullPrintbtn := server.NewButton("Full Print")
+	fullPrintbtn.AddEHandlerFunc(func(e server.Event) {
+		twitterConfig.SearchCriteria.SearchHandleContext = nil
+		for _, v := range handleMainMap {
+			twitterConfig.SearchCriteria.SearchHandleContext = append(twitterConfig.SearchCriteria.SearchHandleContext, v)
+		}
+		twitterConfig.SearchCriteria.SearchNameContext = nil
+		for _, v := range nameMainMap {
+			twitterConfig.SearchCriteria.SearchNameContext = append(twitterConfig.SearchCriteria.SearchNameContext, v)
+		}
+		twitterConfig.SearchCriteria.SearchBioContext = nil
+		for _, v := range bioMainMap {
+			twitterConfig.SearchCriteria.SearchBioContext = append(twitterConfig.SearchCriteria.SearchBioContext, v)
+		}
+		twitterConfig.SearchCriteria.SearchLocationContext = nil
+		for _, v := range locationMainMap {
+			twitterConfig.SearchCriteria.SearchLocationContext = append(twitterConfig.SearchCriteria.SearchLocationContext, v)
+		}
+		fmt.Println(twitterConfig.SearchCriteria)
 	}, server.ETypeClick)
+	win.Add(fullPrintbtn)
 
-	fp = server.NewHorizontalPanel()
-	fp.Add(server.NewLabel("Search Name Context"))
-	searchNameContext := server.NewTextBox("")
-	fp.Add(searchNameContext)
-	win.Add(fp)
-
-	fp = server.NewHorizontalPanel()
-	fp.Add(server.NewLabel("Search Bio Context"))
-	searchBioContext := server.NewTextBox("")
-	fp.Add(searchBioContext)
-	win.Add(fp)
-
-	fp = server.NewHorizontalPanel()
-	fp.Add(server.NewLabel("Search Location Context"))
-	searchLocationContext := server.NewTextBox("")
-	fp.Add(searchLocationContext)
-	win.Add(fp)
+	//
+	// ---
+	//
 
 	fp = server.NewHorizontalPanel()
 	fp.Add(server.NewLabel("Followers Count Between"))
