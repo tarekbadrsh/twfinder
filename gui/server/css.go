@@ -53,6 +53,8 @@ body {font-family:Arial}
 
 .gui-TextBox {}
 
+.gui-Datepicker {}
+
 .gui-PasswBox {}
 
 .gui-HTML {}

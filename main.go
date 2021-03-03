@@ -13,7 +13,7 @@ import (
 
 func main() {
 
-	win := frontend.Gui("Configuration")
+	win := frontend.ConfigWin()
 	// Create and start a GUI server (omitting error check)
 	server := server.NewServer("guitest", "localhost:8081")
 	server.SetText("Test GUI App")
