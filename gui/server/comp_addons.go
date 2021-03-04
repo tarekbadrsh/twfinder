@@ -7,6 +7,7 @@ package server
 
 import (
 	"strconv"
+	"time"
 )
 
 // HasText interface defines a modifiable text property.
@@ -156,6 +157,38 @@ type HasHVAlign interface {
 type hasHVAlignImpl struct {
 	halign HAlign // Horizontal alignment
 	valign VAlign // Vertical alignment
+}
+
+// HasDate interface defines a modifiable date property.
+type HasDate interface {
+	// Date returns the date.
+	Date() time.Time
+
+	// SetDate sets the date.
+	SetDate(date string)
+}
+
+// newHasDateImpl creates a new hasDateImpl
+func newHasDateImpl(date time.Time) hasDateImpl {
+	return hasDateImpl{date}
+}
+
+// HasDate implementation.
+type hasDateImpl struct {
+	date time.Time // The date
+}
+
+func (d *hasDateImpl) Date() time.Time {
+	return d.date
+}
+
+func (d *hasDateImpl) SetDate(date time.Time) {
+	d.date = date
+}
+
+// renderText renders the text.
+func (d *hasDateImpl) renderText(w Writer) {
+	w.Writees(d.date.Format("2006-01-02"))
 }
 
 // newHasHVAlignImpl creates a new hasHVAlignImpl

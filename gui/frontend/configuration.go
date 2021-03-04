@@ -4,21 +4,25 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"time"
 	"twfinder/config"
 	"twfinder/gui/server"
+	"twfinder/logger"
 )
 
 var twitterConfig = config.Config{}
 
 // newStrTxtLblPanel : create new TextBox with lable in Horizontal mode
 // strInput : text input for TextBox
-func newStrTxtLblPanel(lbltxt string, input *string) server.Panel {
+func newStrTxtLblPanel(lbltxt string, input *string, isPassword bool) server.Panel {
 	pan := server.NewHorizontalPanel()
-
 	lbl := server.NewLabel(lbltxt)
 	pan.Add(lbl)
 
 	txtbox := server.NewTextBox(*input)
+	if isPassword {
+		txtbox = server.NewPasswBox(*input)
+	}
 	txtbox.AddEHandlerFunc(func(e server.Event) {
 		*input = txtbox.Text()
 	}, server.ETypeChange)
@@ -29,26 +33,45 @@ func newStrTxtLblPanel(lbltxt string, input *string) server.Panel {
 
 // newIntTxtLblPanel : create new TextBox with lable in Horizontal mode
 // intInput : int input for TextBox
-func newIntTxtLblPanel(lbltxt string, input *int64) server.Panel {
+func newIntTxtLblPanel(lbltxt string, intInput *int64) server.Panel {
 	pan := server.NewHorizontalPanel()
 
 	lbl := server.NewLabel(lbltxt)
 	pan.Add(lbl)
 
-	inputStr := strconv.FormatInt(*input, 10)
+	inputStr := strconv.FormatInt(*intInput, 10)
 	txtbox := server.NewTextBox(inputStr)
 	txtbox.AddEHandlerFunc(func(e server.Event) {
-		i, _ := strconv.ParseInt(txtbox.Text(), 10, 64)
-		*input = i
+		eventText := txtbox.Text()
+		i, err := strconv.ParseInt(eventText, 10, 64)
+		if err != nil {
+			logger.Errorf("error occurred during conver string to number input:%v  error:%v", eventText, err)
+			return
+		}
+		*intInput = i
 	}, server.ETypeChange)
 	pan.Add(txtbox)
 
 	return pan
 }
 
-// NewTextBoxFromTo : return new two integar only text box
+// newDatepickerLblPanel : create new datepicker with lable in Horizontal mode
+// dateInput : date input for datepicker
+func newDatepickerLblPanel(lbltxt string, dateInput *time.Time) server.Panel {
+	pan := server.NewHorizontalPanel()
+	lbl := server.NewLabel(lbltxt)
+	pan.Add(lbl)
+	mydatepicker := server.NewDatepicker(*dateInput)
+	mydatepicker.AddEHandlerFunc(func(e server.Event) {
+		*dateInput = mydatepicker.Date()
+	}, server.ETypeChange)
+	pan.Add(mydatepicker)
+	return pan
+}
+
+// newIntTextBoxFromTo : return new two integar only text box
 // to handle from/to input
-func NewTextBoxFromTo(panalTitle string, from *int64, to *int64) server.Panel {
+func newIntTextBoxFromTo(panalTitle string, from *int64, to *int64) server.Panel {
 	// main
 	mainPanal := server.NewVerticalPanel()
 
@@ -106,8 +129,68 @@ func NewTextBoxFromTo(panalTitle string, from *int64, to *int64) server.Panel {
 	return mainPanal
 }
 
-// NewArrTextBoxPanal : return new text box with two way binding
-func NewArrTextBoxPanal(panalTitle string, inputArr []string) (server.Panel, map[int]string) {
+// newDatepickerFromTo : return new two Datepicker
+// to handle from/to input
+func newDatepickerFromTo(panalTitle string, from *time.Time, to *time.Time) server.Panel {
+	// main
+	mainPanal := server.NewVerticalPanel()
+
+	// header
+	headerPanel := server.NewHorizontalPanel()
+	headerPanellbl := server.NewLabel(panalTitle)
+	headerPanel.Add(headerPanellbl)
+
+	// body
+	bodyPanelfunc := func(from *time.Time, to *time.Time) server.Panel {
+		pan := server.NewVerticalPanel()
+		fromPan := newDatepickerLblPanel("From", from)
+		pan.Add(fromPan)
+		toPan := newDatepickerLblPanel("To", to)
+		pan.Add(toPan)
+		return pan
+	}
+	bodyPanel := bodyPanelfunc(from, to)
+
+	// btns
+	headerPanelAddBtn := server.NewButton("+")
+	headerPanelRemoveBtn := server.NewButton("-")
+
+	// addbtn
+	headerPanelAddBtn.AddSyncOnETypes(server.ETypeClick)
+	headerPanelAddBtn.AddEHandlerFunc(func(e server.Event) {
+		bodyPanel = bodyPanelfunc(from, to)
+		mainPanal.Add(bodyPanel)
+		headerPanel.Insert(headerPanelRemoveBtn, headerPanel.CompsCount())
+		headerPanel.Remove(headerPanelAddBtn)
+		e.MarkDirty(mainPanal, headerPanel)
+	}, server.ETypeClick)
+
+	// removebtn
+	headerPanelRemoveBtn.AddSyncOnETypes(server.ETypeClick)
+	headerPanelRemoveBtn.AddEHandlerFunc(func(e server.Event) {
+		// update values
+		*from = time.Time{}
+		*to = time.Time{}
+		mainPanal.Remove(bodyPanel)
+		headerPanel.Insert(headerPanelAddBtn, headerPanel.CompsCount())
+		headerPanel.Remove(headerPanelRemoveBtn)
+		e.MarkDirty(mainPanal, headerPanel)
+	}, server.ETypeClick)
+
+	mainPanal.Add(headerPanel)
+
+	if !from.IsZero() || !to.IsZero() {
+		headerPanel.Add(headerPanelRemoveBtn)
+		mainPanal.Add(bodyPanel)
+	} else {
+		headerPanel.Add(headerPanelAddBtn)
+	}
+
+	return mainPanal
+}
+
+// newArrTextBoxPanal : return new text box with two way binding
+func newArrTextBoxPanal(panalTitle string, inputArr []string) (server.Panel, map[int]string) {
 
 	// Initialize main items
 	mainMap := make(map[int]string)
@@ -188,59 +271,55 @@ func ConfigWin() server.Window {
 
 	win.Add(server.NewLabel("Configuration builder"))
 
-	consumerKeyPan := newStrTxtLblPanel("Consumer Key", &twitterConfig.ConsumerKey)
+	consumerKeyPan := newStrTxtLblPanel("Consumer Key", &twitterConfig.ConsumerKey, true)
 	win.Add(consumerKeyPan)
 
-	consumerSecretPan := newStrTxtLblPanel("Consumer Secret", &twitterConfig.ConsumerSecret)
+	consumerSecretPan := newStrTxtLblPanel("Consumer Secret", &twitterConfig.ConsumerSecret, true)
 	win.Add(consumerSecretPan)
 
-	accessTokenPan := newStrTxtLblPanel("Access Token", &twitterConfig.AccessToken)
+	accessTokenPan := newStrTxtLblPanel("Access Token", &twitterConfig.AccessToken, true)
 	win.Add(accessTokenPan)
 
-	accessTokenSecretPan := newStrTxtLblPanel("Access Token Secret", &twitterConfig.AccessTokenSecret)
+	accessTokenSecretPan := newStrTxtLblPanel("Access Token Secret", &twitterConfig.AccessTokenSecret, true)
 	win.Add(accessTokenSecretPan)
 
-	searchUserPan := newStrTxtLblPanel("Search User", &twitterConfig.SearchUser)
+	searchUserPan := newStrTxtLblPanel("Search User", &twitterConfig.SearchUser, false)
 	win.Add(searchUserPan)
 	//
 	// ---
 	//
 	win.Add(server.NewLabel("Search Criteria"))
 	// searchHandlePanal
-	searchHandlePanal, handleMainMap := NewArrTextBoxPanal("Search Handle Context", twitterConfig.SearchCriteria.SearchHandleContext)
+	searchHandlePanal, handleMainMap := newArrTextBoxPanal("Search Handle Context", twitterConfig.SearchCriteria.SearchHandleContext)
 	win.Add(searchHandlePanal)
 	// searchNamePanal
-	searchNamePanal, nameMainMap := NewArrTextBoxPanal("Search Name Context", twitterConfig.SearchCriteria.SearchNameContext)
+	searchNamePanal, nameMainMap := newArrTextBoxPanal("Search Name Context", twitterConfig.SearchCriteria.SearchNameContext)
 	win.Add(searchNamePanal)
 	// searchBioPanal
-	searchBioPanal, bioMainMap := NewArrTextBoxPanal("Search Bio Context", twitterConfig.SearchCriteria.SearchBioContext)
+	searchBioPanal, bioMainMap := newArrTextBoxPanal("Search Bio Context", twitterConfig.SearchCriteria.SearchBioContext)
 	win.Add(searchBioPanal)
 	// searchLocationPanal
-	searchLocationPanal, locationMainMap := NewArrTextBoxPanal("Search Location Context", twitterConfig.SearchCriteria.SearchLocationContext)
+	searchLocationPanal, locationMainMap := newArrTextBoxPanal("Search Location Context", twitterConfig.SearchCriteria.SearchLocationContext)
 	win.Add(searchLocationPanal)
 	// followersPanal
-	followersPanal := NewTextBoxFromTo("Followers Count Between", &twitterConfig.SearchCriteria.FollowersCountBetween.From, &twitterConfig.SearchCriteria.FollowersCountBetween.To)
+	followersPanal := newIntTextBoxFromTo("Followers Count Between", &twitterConfig.SearchCriteria.FollowersCountBetween.From, &twitterConfig.SearchCriteria.FollowersCountBetween.To)
 	win.Add(followersPanal)
 	// followingPanal
-	followingPanal := NewTextBoxFromTo("Following Count Between", &twitterConfig.SearchCriteria.FollowingCountBetween.From, &twitterConfig.SearchCriteria.FollowingCountBetween.To)
+	followingPanal := newIntTextBoxFromTo("Following Count Between", &twitterConfig.SearchCriteria.FollowingCountBetween.From, &twitterConfig.SearchCriteria.FollowingCountBetween.To)
 	win.Add(followingPanal)
 	// likesPanal
-	likesPanal := NewTextBoxFromTo("Likes Count Between", &twitterConfig.SearchCriteria.LikesCountBetween.From, &twitterConfig.SearchCriteria.LikesCountBetween.To)
+	likesPanal := newIntTextBoxFromTo("Likes Count Between", &twitterConfig.SearchCriteria.LikesCountBetween.From, &twitterConfig.SearchCriteria.LikesCountBetween.To)
 	win.Add(likesPanal)
 	// tweetsPanal
-	tweetsPanal := NewTextBoxFromTo("Tweets Count Between", &twitterConfig.SearchCriteria.TweetsCountBetween.From, &twitterConfig.SearchCriteria.TweetsCountBetween.To)
+	tweetsPanal := newIntTextBoxFromTo("Tweets Count Between", &twitterConfig.SearchCriteria.TweetsCountBetween.From, &twitterConfig.SearchCriteria.TweetsCountBetween.To)
 	win.Add(tweetsPanal)
 	// listsPanal
-	listsPanal := NewTextBoxFromTo("Lists Count Between", &twitterConfig.SearchCriteria.ListsCountBetween.From, &twitterConfig.SearchCriteria.ListsCountBetween.To)
+	listsPanal := newIntTextBoxFromTo("Lists Count Between", &twitterConfig.SearchCriteria.ListsCountBetween.From, &twitterConfig.SearchCriteria.ListsCountBetween.To)
 	win.Add(listsPanal)
 
-	// fp = server.NewHorizontalPanel()
-	// fp.Add(server.NewLabel("Joined Count Between"))
-	// JoinedCountFrom := server.NewTextBox("2000-09-22T12:42:31Z")
-	// fp.Add(JoinedCountFrom)
-	// JoinedCountTo := server.NewTextBox("2018-09-22T12:42:31Z")
-	// fp.Add(JoinedCountTo)
-	// win.Add(fp)
+	// JoinDatePanal
+	JoinDatePanal := newDatepickerFromTo("Joined Date Between", &twitterConfig.SearchCriteria.JoinedBetween.From, &twitterConfig.SearchCriteria.JoinedBetween.To)
+	win.Add(JoinDatePanal)
 
 	// verifiedCb
 	verifiedCb := newCheckPanel("Verified", &twitterConfig.SearchCriteria.Verified)

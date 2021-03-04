@@ -12,6 +12,11 @@ import (
 )
 
 func main() {
+	/* logger initialize start */
+	mylogger := logger.NewZapLogger()
+	logger.InitializeLogger(&mylogger)
+	defer logger.Close()
+	/* logger initialize end */
 
 	win := frontend.ConfigWin()
 	// Create and start a GUI server (omitting error check)
@@ -23,12 +28,6 @@ func main() {
 	/* configuration initialize start */
 	c := config.Configuration()
 	/* configuration initialize end */
-
-	/* logger initialize start */
-	mylogger := logger.NewZapLogger()
-	logger.InitializeLogger(&mylogger)
-	defer logger.Close()
-	/* logger initialize end */
 
 	/* finder build start */
 	finder.BuildSearchCriteria(c)

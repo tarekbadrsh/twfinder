@@ -226,7 +226,7 @@ func listsFilter(u *anaconda.User) (string, bool) {
 
 func joinedFilter(u *anaconda.User) (string, bool) {
 	match := true
-	joinedUnx := helper.StringtoDate(u.CreatedAt).Unix()
+	joinedUnx := helper.StringtoDate(u.CreatedAt, "").Unix()
 	if !intFinder.joinedBetween.From.IsZero() {
 		if joinedUnx <= intFinder.joinedBetween.From.Unix() {
 			match = false

@@ -1,11 +1,20 @@
 package helper
 
-import "time"
+import (
+	"time"
+	"twfinder/logger"
+)
 
-// StringtoDate : convert string to datetime using Ruby format.
-func StringtoDate(date string) time.Time {
-	if res, err := time.Parse(time.RubyDate, date); err == nil {
-		return res
+// StringtoDate : convert string to datetime.
+// default layout : Ruby format "Mon Jan 02 15:04:05 -0700 2006"
+func StringtoDate(date string, layout string) time.Time {
+	if layout == "" {
+		layout = time.RubyDate
 	}
-	return time.Time{}
+	res, err := time.Parse(layout, date)
+	if err != nil {
+		logger.Errorf("Error while converting string to date input:%v layout:%v", date, layout)
+		return time.Time{}
+	}
+	return res
 }
