@@ -2,7 +2,6 @@ package frontend
 
 import (
 	"fmt"
-	"twfinder/config"
 	"twfinder/gui/server"
 )
 
@@ -22,7 +21,6 @@ func (h *myButtonHandler) HandleEvent(e server.Event) {
 
 // Gui :
 func Gui(name string) server.Window {
-	twitterConfig = config.Configuration()
 
 	// Create and build a window
 	// win := server.NewWindow("main", "Test GUI Window")

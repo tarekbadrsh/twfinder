@@ -2,16 +2,10 @@ package config
 
 import (
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/tarekbadrshalaan/goStuff/configuration"
-)
-
-var (
-	readConfigOnce sync.Once
-	internalConfig Config
 )
 
 // Config : application configuration
@@ -55,20 +49,31 @@ type FromToDate struct {
 	To   time.Time `json:"TO" envconfig:"TO"`
 }
 
-// Configuration : get configuration based on json file or environment variables
-func Configuration() Config {
-	readConfigOnce.Do(func() {
-		err := configuration.JSON("config.json", &internalConfig)
-		if err == nil {
-			return
-		}
-		fmt.Println(err)
+var (
+	internalConfig    = Config{}
+	defaultConfigPath = "config.json"
+)
 
-		err = envconfig.Process("", &internalConfig)
-		if err != nil {
-			err = fmt.Errorf("Error while initiating app configuration : %v", err)
-			panic(err)
-		}
-	})
-	return internalConfig
+// BuildConfiguration :
+func BuildConfiguration(configPath string) {
+	if configPath == "" {
+		configPath = defaultConfigPath
+	}
+	// get configuration from json file
+	if err := configuration.JSON(configPath, &internalConfig); err == nil {
+		return
+	}
+	// get configuration from environment variables
+	if err := envconfig.Process("", internalConfig); err == nil {
+		return
+	}
+	fmt.Printf(
+		"Error occurred during build the configuration from '%v' & environment variables"+
+			"\n <<<DEFUALT CONFIGURATION WILL BE USED>>>\n", configPath)
+}
+
+// Configuration : get the current available configuration
+func Configuration() *Config {
+	// todo check if internalConfig is nil, and rebuild
+	return &internalConfig
 }

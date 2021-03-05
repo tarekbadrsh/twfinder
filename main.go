@@ -12,6 +12,11 @@ import (
 )
 
 func main() {
+	// todo read from cmd args
+	/* configuration initialize start */
+	config.BuildConfiguration("config.json")
+	/* configuration initialize end */
+
 	/* logger initialize start */
 	mylogger := logger.NewZapLogger()
 	logger.InitializeLogger(&mylogger)
@@ -19,18 +24,15 @@ func main() {
 	/* logger initialize end */
 
 	win := frontend.ConfigWin()
+
 	// Create and start a GUI server (omitting error check)
-	server := server.NewServer("guitest", "localhost:8081")
+	server := server.NewServer("", "localhost:8081")
 	server.SetText("Test GUI App")
 	server.AddWin(win)
 	server.Start("Configuration") // Also opens windows list in browser
 
-	/* configuration initialize start */
-	c := config.Configuration()
-	/* configuration initialize end */
-
 	/* finder build start */
-	finder.BuildSearchCriteria(c)
+	finder.BuildSearchCriteria()
 	/* finder build end */
 
 	/* build TwitterAPI start */

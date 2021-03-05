@@ -10,8 +10,6 @@ import (
 	"twfinder/logger"
 )
 
-var twitterConfig = config.Config{}
-
 // newStrTxtLblPanel : create new TextBox with lable in Horizontal mode
 // strInput : text input for TextBox
 func newStrTxtLblPanel(lbltxt string, input *string, isPassword bool) server.Panel {
@@ -261,9 +259,8 @@ func newCheckPanel(lbltxt string, state *bool) server.Panel {
 
 // ConfigWin : build configuration window with all required elements
 func ConfigWin() server.Window {
-	twitterConfig = config.Configuration()
-
-	// Create and build a window
+	twitterConfig := config.Configuration()
+	// Create and build the configuration window
 	win := server.NewWindow("Configuration", "Configuration")
 	win.Style().SetFullWidth()
 	win.SetHAlign(server.HACenter)

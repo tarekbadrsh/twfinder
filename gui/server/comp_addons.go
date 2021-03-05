@@ -188,6 +188,9 @@ func (d *hasDateImpl) SetDate(date time.Time) {
 
 // renderText renders the text.
 func (d *hasDateImpl) renderText(w Writer) {
+	if d.date.IsZero() {
+		return
+	}
 	w.Writees(d.date.Format("2006-01-02"))
 }
 

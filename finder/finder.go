@@ -44,7 +44,8 @@ func CheckUserCriteria(user *anaconda.User) bool {
 }
 
 // BuildSearchCriteria : build interanl search criteria
-func BuildSearchCriteria(c config.Config) {
+func BuildSearchCriteria() {
+	c := config.Configuration()
 	buildFinderOnce.Do(func() {
 		intFinder.searchHandleContext = c.SearchCriteria.SearchHandleContext
 		if len(intFinder.searchHandleContext) > 1 {
