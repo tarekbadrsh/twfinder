@@ -32,7 +32,9 @@ func main() {
 	server.SetText("Twitter Finder App")
 	server.AddWin(frontend.ConfigWin())
 	server.AddWin(frontend.HomeWin())
-	server.Start("Configuration") // Also opens windows list in browser
+	server.AddWin(frontend.FinderWin())
+	server.SetDefaultRootWindow(frontend.HomeWin())
+	server.Start("home") // Also opens windows list in browser
 
 	/* finder build start */
 	finder.BuildSearchCriteria()

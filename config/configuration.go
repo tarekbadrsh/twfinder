@@ -1,7 +1,9 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/kelseyhightower/envconfig"
@@ -117,8 +119,21 @@ func SetConfiguration(c Config) {
 // cp Configuration file path to save
 func SaveConfiguration(cp string) error {
 	if cp == "" {
-		fmt.Println("Configuration file path should not be nil")
+		// use current configPath
+		cp = configPath
 	}
-	// todo save current configuration to the file path
+	f, err := os.OpenFile(cp, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	if err != nil {
+		fmt.Printf("Error occurred during open file %v %v\n", cp, err)
+		return err
+	}
+	defer f.Close()
+
+	jsonToSave, err := json.MarshalIndent(internalConfig, "", " ")
+	if err != nil {
+		fmt.Printf("Error occurred during Marshal json %v\n", err)
+		return err
+	}
+	f.Write(jsonToSave)
 	return nil
 }

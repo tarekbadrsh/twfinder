@@ -177,6 +177,9 @@ type Server interface {
 	// By setting your own hander, you will completely take over the app root.
 	SetAppRootHandler(f AppRootHandlerFunc)
 
+	// SetDefaultRootWindow window to run on '/' paht
+	SetDefaultRootWindow(win Window)
+
 	// SessIDCookieName returns the cookie name used to store the sever
 	// session ID.
 	SessIDCookieName() string
@@ -214,6 +217,7 @@ type serverImpl struct {
 	headers            http.Header        // Extra headers that will be added to all responses.
 	rootHeads          []string           // Additional head HTML texts of the window list page (app root)
 	appRootHandlerFunc AppRootHandlerFunc // App root handler function
+	defaultRootWin     Window             // Default Root Win
 	sessIDCookieName   string             // Session ID cookie name
 
 	sessMux sync.RWMutex // Mutex to protect state related to session handling
@@ -275,7 +279,7 @@ func newServerImpl(appName, addr, certFile, keyFile string) *serverImpl {
 		panic(fmt.Sprintf("Parse %q: %+v", s.appURLString, err))
 	}
 
-	s.appRootHandlerFunc = s.renderWinList
+	s.appRootHandlerFunc = s.renderDefaultWin
 
 	return s
 }
@@ -504,6 +508,10 @@ func (s *serverImpl) SetAppRootHandler(f AppRootHandlerFunc) {
 	s.appRootHandlerFunc = f
 }
 
+func (s *serverImpl) SetDefaultRootWindow(win Window) {
+	s.defaultRootWin = win
+}
+
 func (s *serverImpl) SessIDCookieName() string {
 	return s.sessIDCookieName
 }
@@ -730,6 +738,15 @@ func (s *serverImpl) renderWinList(wr http.ResponseWriter, r *http.Request, sess
 	}
 
 	win.RenderWin(NewWriter(wr), s)
+}
+
+// renderDefaultWin builds the default Window
+func (s *serverImpl) renderDefaultWin(wr http.ResponseWriter, r *http.Request, sess Session) {
+	if s.defaultRootWin == nil {
+		s.renderWinList(wr, r, s)
+		return
+	}
+	s.defaultRootWin.RenderWin(NewWriter(wr), s)
 }
 
 // renderComp renders just a component.

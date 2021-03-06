@@ -261,7 +261,7 @@ func newCheckPanel(lbltxt string, state *bool) server.Panel {
 func ConfigWin() server.Window {
 	twitterConfig := config.Configuration()
 	// Create and build the configuration window
-	win := server.NewWindow("Configuration", "Configuration")
+	win := server.NewWindow("configuration", "Configuration - Twitter Finder App")
 	win.Style().SetFullWidth()
 	win.SetHAlign(server.HACenter)
 	win.SetCellPadding(2)
@@ -360,8 +360,12 @@ func ConfigWin() server.Window {
 
 		config.SetConfiguration(twitterConfig)
 		fmt.Println(config.Configuration())
-
-		e.ReloadWin("Home")
+		err := config.SaveConfiguration("")
+		if err != nil {
+			logger.Error(err)
+			return
+		}
+		e.ReloadWin("home")
 	}, server.ETypeClick)
 
 	win.Add(saveConfigBtn)
