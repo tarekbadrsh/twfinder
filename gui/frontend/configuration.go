@@ -339,8 +339,8 @@ func ConfigWin() server.Window {
 	//
 	// ---
 	//
-	fullPrintbtn := server.NewButton("Full Print")
-	fullPrintbtn.AddEHandlerFunc(func(e server.Event) {
+	saveConfigBtn := server.NewButton("Save & Exit")
+	saveConfigBtn.AddEHandlerFunc(func(e server.Event) {
 		twitterConfig.SearchCriteria.SearchHandleContext = nil
 		for _, v := range handleMainMap {
 			twitterConfig.SearchCriteria.SearchHandleContext = append(twitterConfig.SearchCriteria.SearchHandleContext, v)
@@ -358,9 +358,12 @@ func ConfigWin() server.Window {
 			twitterConfig.SearchCriteria.SearchLocationContext = append(twitterConfig.SearchCriteria.SearchLocationContext, v)
 		}
 
-		fmt.Println(twitterConfig)
-	}, server.ETypeClick)
-	win.Add(fullPrintbtn)
+		config.SetConfiguration(twitterConfig)
+		fmt.Println(config.Configuration())
 
+		e.ReloadWin("Home")
+	}, server.ETypeClick)
+
+	win.Add(saveConfigBtn)
 	return win
 }

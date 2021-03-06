@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"os"
 	"twfinder/config"
 	"twfinder/finder"
@@ -12,9 +13,12 @@ import (
 )
 
 func main() {
-	// todo read from cmd args
+	// read Command-Line Flags
+	configPath := flag.String("c", "config.json", "configuration file path")
+	flag.Parse()
+
 	/* configuration initialize start */
-	config.BuildConfiguration("config.json")
+	config.BuildConfiguration(*configPath)
 	/* configuration initialize end */
 
 	/* logger initialize start */
@@ -23,12 +27,11 @@ func main() {
 	defer logger.Close()
 	/* logger initialize end */
 
-	win := frontend.ConfigWin()
-
 	// Create and start a GUI server (omitting error check)
 	server := server.NewServer("", "localhost:8081")
-	server.SetText("Test GUI App")
-	server.AddWin(win)
+	server.SetText("Twitter Finder App")
+	server.AddWin(frontend.ConfigWin())
+	server.AddWin(frontend.HomeWin())
 	server.Start("Configuration") // Also opens windows list in browser
 
 	/* finder build start */

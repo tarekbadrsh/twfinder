@@ -50,15 +50,44 @@ type FromToDate struct {
 }
 
 var (
-	internalConfig    = Config{}
-	defaultConfigPath = "config.json"
+	configPath     = ""
+	internalConfig = Config{}
+
+	defaultConfigPath    = "config.json"
+	defaultConfiguration = Config{
+		ConsumerKey:       "<CONSUMER_KEY>",
+		ConsumerSecret:    "<CONSUMER_SECRET>",
+		AccessToken:       "<ACCESS_TOKEN>",
+		AccessTokenSecret: "<ACCESS_TOKEN_SECRET>",
+		SearchUser:        "<SEARCH_USER>",
+		SearchCriteria: SearchCriteria{
+			SearchHandleContext:   []string{"a", "-a"},
+			SearchNameContext:     []string{"a", "-a"},
+			SearchBioContext:      []string{"a", "-a"},
+			SearchLocationContext: []string{"a", "-a"},
+			FollowersCountBetween: FromToNumber{From: 0, To: 100000},
+			FollowingCountBetween: FromToNumber{From: 0, To: 100000},
+			LikesCountBetween:     FromToNumber{From: 0, To: 100000},
+			TweetsCountBetween:    FromToNumber{From: 0, To: 100000},
+			ListsCountBetween:     FromToNumber{From: 0, To: 100000},
+			JoinedBetween:         FromToDate{From: time.Time{}, To: time.Now()},
+			Verified:              false,
+		},
+		Following:                 true,
+		Followers:                 true,
+		Recursive:                 true,
+		RecursiveSuccessUsersOnly: true,
+	}
 )
 
-// BuildConfiguration :
-func BuildConfiguration(configPath string) {
-	if configPath == "" {
+// BuildConfiguration : cp Configuration path
+func BuildConfiguration(cp string) {
+	if cp != "" {
+		configPath = cp
+	} else {
 		configPath = defaultConfigPath
 	}
+
 	// get configuration from json file
 	if err := configuration.JSON(configPath, &internalConfig); err == nil {
 		return
@@ -69,11 +98,27 @@ func BuildConfiguration(configPath string) {
 	}
 	fmt.Printf(
 		"Error occurred during build the configuration from '%v' & environment variables"+
-			"\n <<<DEFUALT CONFIGURATION WILL BE USED>>>\n", configPath)
+			"\n <<<DEFAULT CONFIGURATION WILL BE USED>>>\n", configPath)
+	internalConfig = defaultConfiguration
 }
 
 // Configuration : get the current available configuration
-func Configuration() *Config {
+func Configuration() Config {
 	// todo check if internalConfig is nil, and rebuild
-	return &internalConfig
+	return internalConfig
+}
+
+// SetConfiguration : set the configuration
+func SetConfiguration(c Config) {
+	internalConfig = c
+}
+
+// SaveConfiguration : the current available configuration
+// cp Configuration file path to save
+func SaveConfiguration(cp string) error {
+	if cp == "" {
+		fmt.Println("Configuration file path should not be nil")
+	}
+	// todo save current configuration to the file path
+	return nil
 }
