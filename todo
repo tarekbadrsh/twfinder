@@ -1,24 +1,8 @@
-- update search criteria -- > done 
-    Joined -> created at 
-    verified 
-    website
-    followers count
-    following count 
-    likes count -> favourites count 
-    lists COUN-> listedcount 
-    tweets count -> statuesCount
-
-- consider twitter 100 rate limit -- > done
-- packageing the code -- > done 
-- check new ssh key --> done 
-- recursive search --> done 
-- update output result --> done 
-- update code packageing --> done 
-
-- marge the pull request --> done  
-- re-manage the storage --> done 
-- final code check --> 
-- respect twitter limits --> %%deleted
-- create config tmp --> done 
-- update readme file 
-- publish tweets :) 
+- update readme file
+- start system from start button --> done
+- save current cache
+- start from existing cache
+- show result on ui
+- update html result
+- create twitter private list
+- terminate the application safely
