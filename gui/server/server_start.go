@@ -5,10 +5,10 @@
 package server
 
 import (
-	"log"
 	"net/http"
 	"os/exec"
 	"runtime"
+	"twfinder/logger"
 )
 
 // open opens the specified URL in the default browser of the user.
@@ -39,10 +39,7 @@ func (s *serverImpl) Start(openWins ...string) error {
 	})
 
 	appURL := s.AppURL()
-	log.Println("Starting GUI server on:", appURL)
-	if s.logger != nil {
-		s.logger.Println("Starting GUI server on:", appURL)
-	}
+	logger.Infof("Starting GUI server on:%v", appURL)
 
 	for _, winName := range openWins {
 		if err := open(appURL + winName); err != nil {

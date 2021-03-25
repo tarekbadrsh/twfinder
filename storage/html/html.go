@@ -11,8 +11,6 @@ import (
 	"github.com/tarekbadrshalaan/anaconda"
 )
 
-const storageDir = "result"
-
 type html struct {
 	tmpl      *template.Template
 	startFile int
@@ -34,12 +32,14 @@ func BuildHTMLStore() (storage.IStorage, error) {
 	h := &html{tmpl: tmpl}
 
 	// create storage directory
-	err = os.Mkdir(storageDir, os.ModePerm)
+	htmldir := fmt.Sprintf("%v/html", static.STORAGEDIR)
+	err = os.Mkdir(htmldir, os.ModePerm)
 	if err != nil {
-		logger.Warn(err)
+		logger.Error(err)
 	}
+
 	for i := 1; ; i++ {
-		fname := fmt.Sprintf("%v/%v.html", storageDir, i)
+		fname := fmt.Sprintf("%v/html/%v.html", static.STORAGEDIR, i)
 		if _, err := os.Stat(fname); err != nil {
 			h.startFile = i
 			break
@@ -57,10 +57,10 @@ func (h *html) Store(usersChan <-chan anaconda.User) {
 			NextPage:     counter + 1,
 			Users:        []anaconda.User{},
 		}
-		fName := fmt.Sprintf("%v/%v.html", storageDir, counter)
+		fName := fmt.Sprintf("%v/html/%v.html", static.STORAGEDIR, counter)
 		f, err := os.Create(fName)
 		if err != nil {
-			fmt.Println(err)
+			logger.Error(err)
 			f.Close()
 			continue
 		}

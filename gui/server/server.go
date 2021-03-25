@@ -14,6 +14,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"twfinder/logger"
 )
 
 // Internal path constants.
@@ -327,11 +328,7 @@ func (s *serverImpl) newSession(e *eventImpl) Session {
 	s.sessMux.Lock()
 	s.sessions[sess.ID()] = sess
 
-	if s.logger != nil {
-		s.logger.Println("SESSION created:", sess.ID())
-	} else {
-		log.Println("SESSION created:", sess.ID())
-	}
+	logger.Infof("SESSION created:", sess.ID())
 
 	// Notify session handlers
 	for _, handler := range s.sessionHandlers {
@@ -361,11 +358,7 @@ func (s *serverImpl) removeSess(e *eventImpl) {
 // serverImpl.mux must be locked when this is called.
 func (s *serverImpl) removeSess2(sess Session) {
 	if sess.Private() {
-		if s.logger != nil {
-			s.logger.Println("SESSION removed:", sess.ID())
-		} else {
-			log.Println("SESSION removed:", sess.ID())
-		}
+		logger.Infof("SESSION removed:", sess.ID())
 
 		// Notify session handlers
 		for _, handler := range s.sessionHandlers {

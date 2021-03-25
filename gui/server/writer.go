@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"html"
 	"io"
-	"log"
 	"strconv"
+	"twfinder/logger"
 )
 
 // Number of cached ints.
@@ -119,7 +119,7 @@ func (w writerImpl) Writev(v interface{}) (n int, err error) {
 		return w.Write(strBools[v2])
 	}
 
-	log.Printf("Not supported type: %T\n", v)
+	logger.Warnf("Not supported type: %T\n", v)
 	return 0, fmt.Errorf("Not supported type: %T", v)
 }
 

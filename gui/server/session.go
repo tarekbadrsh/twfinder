@@ -6,10 +6,10 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
-	"log"
 	"sort"
 	"sync"
 	"time"
+	"twfinder/logger"
 )
 
 // Session interface defines the session to the GUI users (clients).
@@ -121,7 +121,7 @@ const idLength = 22
 func genID() string {
 	id := make([]byte, idLength)
 	if _, err := rand.Read(id); err != nil {
-		log.Printf("Failed to read from secure random: %v", err)
+		logger.Errorf("Failed to read from secure random: %v", err)
 	}
 
 	for i, v := range id {

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"sync"
 	"twfinder/config"
-	helper "twfinder/helpers"
+	"twfinder/helper"
 
 	"github.com/tarekbadrshalaan/anaconda"
 )

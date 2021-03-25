@@ -5,8 +5,8 @@
 package server
 
 import (
-	"log"
 	"net/http"
+	"twfinder/logger"
 )
 
 func (s *serverImpl) Start(openWins ...string) error {
@@ -18,10 +18,7 @@ func (s *serverImpl) Start(openWins ...string) error {
 		s.serveStatic(w, r)
 	})
 
-	log.Println("GAE - Starting GUI server on path:", s.appPath)
-	if s.logger != nil {
-		s.logger.Println("GAE - Starting GUI server on path:", s.appPath)
-	}
+	logger.Infof("Starting GUI server on path:", s.appPath)
 
 	go s.sessCleaner()
 

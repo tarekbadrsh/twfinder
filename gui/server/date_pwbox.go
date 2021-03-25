@@ -5,7 +5,7 @@ package server
 import (
 	"net/http"
 	"time"
-	helper "twfinder/helpers"
+	"twfinder/helper"
 )
 
 // Datepicker interface defines a component for date input purpose.
