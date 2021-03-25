@@ -23,7 +23,7 @@ func main() {
 	defer logger.Close()
 	/* logger initialize end */
 
-	// Create and start a GUI server (omitting error check)
+	// Create and start a GUI server (omitting error check).
 	server := server.NewServer("", "localhost:8081")
 	server.SetText("Twitter Finder App")
 	server.AddWin(frontend.HomeWin())
