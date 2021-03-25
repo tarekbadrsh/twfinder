@@ -147,7 +147,7 @@ func (p *Pipeline) prepareStorage() {
 
 func (p *Pipeline) storeCache() {
 	for {
-		time.Sleep(60 * time.Second)
+		time.Sleep(10 * time.Second)
 		storage.StoreCache()
 		logger.Info("cache has been updated")
 	}

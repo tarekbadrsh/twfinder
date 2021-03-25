@@ -11,68 +11,84 @@ import (
 )
 
 const (
-	olduserfile   = "olduser.json"
-	invstuserfile = "invstuser.json"
+	oldusrfile     = "old_user.json"
+	invstusrfile   = "invst_user.json"
+	successusrfile = "successful_user.json"
 )
 
-var internalOldUser map[int64]bool
-var internalInvestUser map[int64]bool
-var internalOldUserMtx sync.Mutex
-var internalInvestUserMtx sync.Mutex
+var oldUser map[int64]bool
+var invstUser map[int64]bool
+var successUser map[int64]bool
+var oldUserMtx sync.Mutex
+var invstUserMtx sync.Mutex
+var successUserMtx sync.Mutex
 
 func initializeCache() {
-	if internalOldUser == nil {
-		internalOldUser = map[int64]bool{}
+	if oldUser == nil {
+		oldUser = map[int64]bool{}
 	}
-	if internalInvestUser == nil {
-		internalInvestUser = map[int64]bool{}
+	if invstUser == nil {
+		invstUser = map[int64]bool{}
 	}
-	internalOldUserMtx = sync.Mutex{}
-	internalInvestUserMtx = sync.Mutex{}
-}
-
-// CheckOldUser : to check this user has been invested before.
-func CheckOldUser(id int64) bool {
-	internalOldUserMtx.Lock()
-	defer internalOldUserMtx.Unlock()
-	if ok := internalOldUser[id]; ok {
-		return true
+	if successUser == nil {
+		successUser = map[int64]bool{}
 	}
-	internalOldUser[id] = true
-	if _, ok := internalInvestUser[id]; ok {
-		delete(internalInvestUser, id)
-	}
-	return false
+	oldUserMtx = sync.Mutex{}
+	invstUserMtx = sync.Mutex{}
+	successUserMtx = sync.Mutex{}
 }
 
 // AddInvestUser : add new user to be under investigation.
 func AddInvestUser(id int64) {
-	internalInvestUserMtx.Lock()
-	defer internalInvestUserMtx.Unlock()
-	internalInvestUser[id] = true
+	invstUserMtx.Lock()
+	defer invstUserMtx.Unlock()
+	invstUser[id] = true
 }
 
 // RemoveInvestUser : remove user from under investigation.
 func RemoveInvestUser(id int64) {
-	internalInvestUserMtx.Lock()
-	defer internalInvestUserMtx.Unlock()
-	if _, ok := internalInvestUser[id]; ok {
-		delete(internalInvestUser, id)
+	invstUserMtx.Lock()
+	defer invstUserMtx.Unlock()
+	delete(invstUser, id)
+}
+
+// AddSuccessUser : add new user to successful users.
+func AddSuccessUser(id int64) {
+	successUserMtx.Lock()
+	defer successUserMtx.Unlock()
+	successUser[id] = true
+}
+
+// CheckOldUser : to check this user has been invested before.
+func CheckOldUser(id int64) bool {
+	oldUserMtx.Lock()
+	defer oldUserMtx.Unlock()
+	if ok := oldUser[id]; ok {
+		return true
 	}
+	oldUser[id] = true
+	RemoveInvestUser(id)
+	return false
 }
 
 // LoadCache : load internal cache from files
 func LoadCache() {
-	internalOldUserMtx.Lock()
-	defer internalOldUserMtx.Unlock()
-	oldusrfile := fmt.Sprintf("%v/%v", static.STORAGEDIR, olduserfile)
-	if err := configuration.JSON(oldusrfile, &internalOldUser); err != nil {
+	oldUserMtx.Lock()
+	defer oldUserMtx.Unlock()
+	oldfile := fmt.Sprintf("%v/%v", static.STORAGEDIR, oldusrfile)
+	if err := configuration.JSON(oldfile, &oldUser); err != nil {
 		logger.Warn(err)
 	}
-	internalInvestUserMtx.Lock()
-	defer internalInvestUserMtx.Unlock()
-	invstusrfile := fmt.Sprintf("%v/%v", static.STORAGEDIR, invstuserfile)
-	if err := configuration.JSON(invstusrfile, &internalInvestUser); err != nil {
+	invstUserMtx.Lock()
+	defer invstUserMtx.Unlock()
+	invstfile := fmt.Sprintf("%v/%v", static.STORAGEDIR, invstusrfile)
+	if err := configuration.JSON(invstfile, &invstUser); err != nil {
+		logger.Warn(err)
+	}
+	successUserMtx.Lock()
+	defer successUserMtx.Unlock()
+	successfile := fmt.Sprintf("%v/%v", static.STORAGEDIR, successusrfile)
+	if err := configuration.JSON(successfile, &successUser); err != nil {
 		logger.Warn(err)
 	}
 	logger.Info("Cache has been loaded")
@@ -80,17 +96,24 @@ func LoadCache() {
 
 // StoreCache : store internal cache to file
 func StoreCache() error {
-	internalOldUserMtx.Lock()
-	defer internalOldUserMtx.Unlock()
-	internalInvestUserMtx.Lock()
-	defer internalInvestUserMtx.Unlock()
-	oldusrfile := fmt.Sprintf("%v/%v", static.STORAGEDIR, olduserfile)
-	if err := helper.SaveReplaceJsonFile(internalOldUser, oldusrfile); err != nil {
+	oldUserMtx.Lock()
+	defer oldUserMtx.Unlock()
+	oldfile := fmt.Sprintf("%v/%v", static.STORAGEDIR, oldusrfile)
+	if err := helper.SaveReplaceJsonFile(oldUser, oldfile); err != nil {
 		logger.Error(err)
 		return err
 	}
-	invstusrfile := fmt.Sprintf("%v/%v", static.STORAGEDIR, invstuserfile)
-	if err := helper.SaveReplaceJsonFile(internalInvestUser, invstusrfile); err != nil {
+	invstUserMtx.Lock()
+	defer invstUserMtx.Unlock()
+	invstfile := fmt.Sprintf("%v/%v", static.STORAGEDIR, invstusrfile)
+	if err := helper.SaveReplaceJsonFile(invstUser, invstfile); err != nil {
+		logger.Error(err)
+		return err
+	}
+	successUserMtx.Lock()
+	defer successUserMtx.Unlock()
+	successfile := fmt.Sprintf("%v/%v", static.STORAGEDIR, successusrfile)
+	if err := helper.SaveReplaceJsonFile(successUser, successfile); err != nil {
 		logger.Error(err)
 		return err
 	}

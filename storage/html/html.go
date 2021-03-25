@@ -13,7 +13,8 @@ import (
 
 type html struct {
 	tmpl      *template.Template
-	startFile int
+	pagecount int
+	users     []anaconda.User
 }
 
 // StorageObj :
@@ -29,7 +30,7 @@ func BuildHTMLStore() (storage.IStorage, error) {
 	if err != nil {
 		return nil, err
 	}
-	h := &html{tmpl: tmpl}
+	h := &html{tmpl: tmpl, users: []anaconda.User{}}
 
 	// create storage directory
 	htmldir := fmt.Sprintf("%v/html", static.STORAGEDIR)
@@ -41,7 +42,7 @@ func BuildHTMLStore() (storage.IStorage, error) {
 	for i := 1; ; i++ {
 		fname := fmt.Sprintf("%v/html/%v.html", static.STORAGEDIR, i)
 		if _, err := os.Stat(fname); err != nil {
-			h.startFile = i
+			h.pagecount = i
 			break
 		}
 	}
@@ -49,27 +50,29 @@ func BuildHTMLStore() (storage.IStorage, error) {
 }
 
 // Store :
-func (h *html) Store(usersChan <-chan anaconda.User) {
-	counter := h.startFile
-	for {
-		str := StorageObj{
-			PreviousPage: counter - 1,
-			NextPage:     counter + 1,
-			Users:        []anaconda.User{},
-		}
-		fName := fmt.Sprintf("%v/html/%v.html", static.STORAGEDIR, counter)
-		f, err := os.Create(fName)
-		if err != nil {
-			logger.Error(err)
-			f.Close()
-			continue
-		}
-		for i := 0; i < static.RESULTPATCHSIZE; i++ {
-			u := <-usersChan
-			str.Users = append(str.Users, u)
-		}
-		h.tmpl.Execute(f, str)
-		f.Close()
-		counter++
+func (h *html) Store(u anaconda.User) {
+	h.users = append(h.users, u)
+
+	if len(h.users) < static.RESULTPATCHSIZE {
+		return
 	}
+	str := StorageObj{
+		PreviousPage: h.pagecount - 1,
+		NextPage:     h.pagecount + 1,
+		Users:        h.users,
+	}
+	fName := fmt.Sprintf("%v/html/%v.html", static.STORAGEDIR, h.pagecount)
+	f, err := os.Create(fName)
+	if err != nil {
+		logger.Error(err)
+		f.Close()
+		return
+	}
+	defer f.Close()
+	err = h.tmpl.Execute(f, str)
+	if err != nil {
+		logger.Error(err)
+	}
+	h.pagecount = h.pagecount + 1
+	h.users = []anaconda.User{}
 }

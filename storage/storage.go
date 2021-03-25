@@ -14,7 +14,7 @@ var (
 
 // IStorage :
 type IStorage interface {
-	Store(usersChan <-chan anaconda.User)
+	Store(usersChan anaconda.User)
 }
 
 // RegisterStorage :
@@ -28,5 +28,9 @@ func RegisterStorage(storage IStorage) IStorage {
 // Store :
 func Store(usersChan <-chan anaconda.User) {
 	initializeCache()
-	intStorage.Store(usersChan)
+	for {
+		user := <-usersChan
+		AddSuccessUser(user.Id)
+		intStorage.Store(user)
+	}
 }
