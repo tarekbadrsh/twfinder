@@ -37,6 +37,8 @@ func NewPipeline() *Pipeline {
 // Start :
 func (p *Pipeline) Start() {
 	p.prepareStorage()
+	// load the cache if exist
+	storage.LoadCache(p.userInvstChn)
 
 	go p.getUsersDetailsBatches()
 
@@ -86,15 +88,18 @@ func (p *Pipeline) getUserFollowersFollowing() {
 		storage.RemoveInvestUser(userID)
 		logger.Infof("[New User] %v", userID)
 		err := request.UserFollowersFollowing("", userID, p.InputUserIdsChn)
-		trial := 3
 		for err != nil {
-			trial--
-			logger.Errorf("%v\n>>> The application will try again after 1 minutes with user:%v", err, userID)
-			time.Sleep(1 * time.Minute)
-			err = request.UserFollowersFollowing("", userID, p.InputUserIdsChn)
-			if trial < 1 {
-				err = nil
-				logger.Errorf("After 3 trials ... The application will skip user:%v", userID)
+			if aerr, ok := err.(*anaconda.ApiError); ok {
+				if isRateLimitError, nextWindow := aerr.RateLimitCheck(); isRateLimitError {
+					logger.Errorf("Rate limit exceeded Error, The application will try again after %v", nextWindow)
+					<-time.After(time.Until(nextWindow))
+				}
+			} else {
+				logger.Errorf("%v\n>>> Error occurred during request user:%v", err, userID)
+				err = request.UserFollowersFollowing("", userID, p.InputUserIdsChn)
+				if err != nil {
+					logger.Errorf("%v\n>>> [skip user] Error occurred during request user:<%v>", err, userID)
+				}
 			}
 		}
 	}
@@ -154,8 +159,6 @@ func (p *Pipeline) prepareStorage() {
 	if err != nil {
 		logger.Error(err)
 	}
-	// load the cache if exist
-	storage.LoadCache()
 }
 
 func (p *Pipeline) storeCache() {

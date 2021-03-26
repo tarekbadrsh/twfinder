@@ -72,7 +72,7 @@ func CheckOldUser(id int64) bool {
 }
 
 // LoadCache : load internal cache from files
-func LoadCache() {
+func LoadCache(userInvstChn chan<- int64) {
 	initializeCache()
 
 	oldUserMtx.Lock()
@@ -81,18 +81,24 @@ func LoadCache() {
 	if err := configuration.JSON(oldfile, &oldUser); err != nil {
 		logger.Warn(err)
 	}
-	invstUserMtx.Lock()
-	defer invstUserMtx.Unlock()
-	invstfile := fmt.Sprintf("%v/%v", static.STORAGEDIR, invstusrfile)
-	if err := configuration.JSON(invstfile, &invstUser); err != nil {
-		logger.Warn(err)
-	}
 	successUserMtx.Lock()
 	defer successUserMtx.Unlock()
 	successfile := fmt.Sprintf("%v/%v", static.STORAGEDIR, successusrfile)
 	if err := configuration.JSON(successfile, &successUser); err != nil {
 		logger.Warn(err)
 	}
+	invstUserMtx.Lock()
+	defer invstUserMtx.Unlock()
+	invstfile := fmt.Sprintf("%v/%v", static.STORAGEDIR, invstusrfile)
+	if err := configuration.JSON(invstfile, &invstUser); err != nil {
+		logger.Warn(err)
+	}
+	// push users under investigation from the cache
+	go func(userInvstChn chan<- int64) {
+		for k := range invstUser {
+			userInvstChn <- k
+		}
+	}(userInvstChn)
 	logger.Info("Cache has been loaded")
 }
 
