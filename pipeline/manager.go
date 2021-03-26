@@ -88,7 +88,7 @@ func (p *Pipeline) getUserFollowersFollowing() {
 		storage.RemoveInvestUser(userID)
 		logger.Infof("[New User] %v", userID)
 		err := request.UserFollowersFollowing("", userID, p.InputUserIdsChn)
-		for err != nil {
+		if err != nil {
 			if aerr, ok := err.(*anaconda.ApiError); ok {
 				if isRateLimitError, nextWindow := aerr.RateLimitCheck(); isRateLimitError {
 					logger.Errorf("Rate limit exceeded Error, The application will try again after %v", nextWindow)
