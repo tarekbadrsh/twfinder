@@ -4,6 +4,12 @@
     "ACCESS_TOKEN": "<ACCESS_TOKEN>",
     "ACCESS_TOKEN_SECRET": "<ACCESS_TOKEN_SECRET>",
     "SEARCH_USER": "<SEARCH_USER>",
+    "TWITTER_LIST": {
+        "SAVE_LIST": true,
+        "LIST_NAME": "<LIST_NAME>",
+        "IS_PUBLIC": false,
+        "LIST_DESCRIPTION": "<LIST_DESCRIPTION>"
+    },
     "SEARCH_CRITERIA": {
         "SEARCH_HANDLE_CONTEXT": [
             "a",

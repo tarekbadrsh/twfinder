@@ -11,6 +11,7 @@ import (
 	"twfinder/static"
 	"twfinder/storage"
 	"twfinder/storage/html"
+	"twfinder/storage/twitter"
 
 	"github.com/tarekbadrshalaan/anaconda"
 )
@@ -121,11 +122,23 @@ func (p *Pipeline) checkValidateUser() {
 }
 
 func (p *Pipeline) storeResult() {
-	stor, err := html.BuildHTMLStore()
+	// html storage
+	htmlstor, err := html.BuildHTMLStore()
 	if err != nil {
 		logger.Error(err)
 	}
-	storage.RegisterStorage(stor)
+	storage.RegisterStorage(htmlstor)
+
+	// twitter storage
+	if config.Configuration().TwitterList.SaveList {
+		twstor, err := twitter.BuildTwitterStore()
+		if err != nil {
+			logger.Error(err)
+		} else {
+			storage.RegisterStorage(twstor)
+		}
+	}
+
 	storage.Store(p.validUserChn)
 }
 
@@ -147,7 +160,7 @@ func (p *Pipeline) prepareStorage() {
 
 func (p *Pipeline) storeCache() {
 	for {
-		time.Sleep(10 * time.Second)
+		time.Sleep(60 * time.Second)
 		storage.StoreCache()
 		logger.Info("cache has been updated")
 	}

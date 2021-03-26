@@ -38,28 +38,28 @@ func initializeCache() {
 	successUserMtx = sync.Mutex{}
 }
 
-// AddInvestUser : add new user to be under investigation.
+// AddInvestUser : (cache) add new user to be under investigation.
 func AddInvestUser(id int64) {
 	invstUserMtx.Lock()
 	defer invstUserMtx.Unlock()
 	invstUser[id] = true
 }
 
-// RemoveInvestUser : remove user from under investigation.
+// RemoveInvestUser : (cache) remove user from under investigation.
 func RemoveInvestUser(id int64) {
 	invstUserMtx.Lock()
 	defer invstUserMtx.Unlock()
 	delete(invstUser, id)
 }
 
-// AddSuccessUser : add new user to successful users.
+// AddSuccessUser : (cache) add new user to successful users.
 func AddSuccessUser(id int64) {
 	successUserMtx.Lock()
 	defer successUserMtx.Unlock()
 	successUser[id] = true
 }
 
-// CheckOldUser : to check this user has been invested before.
+// CheckOldUser : (cache) to check this user has been invested before.
 func CheckOldUser(id int64) bool {
 	oldUserMtx.Lock()
 	defer oldUserMtx.Unlock()
@@ -73,6 +73,8 @@ func CheckOldUser(id int64) bool {
 
 // LoadCache : load internal cache from files
 func LoadCache() {
+	initializeCache()
+
 	oldUserMtx.Lock()
 	defer oldUserMtx.Unlock()
 	oldfile := fmt.Sprintf("%v/%v", static.STORAGEDIR, oldusrfile)

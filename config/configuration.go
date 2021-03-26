@@ -17,6 +17,7 @@ type Config struct {
 	AccessToken               string         `json:"ACCESS_TOKEN" envconfig:"ACCESS_TOKEN"`
 	AccessTokenSecret         string         `json:"ACCESS_TOKEN_SECRET" envconfig:"ACCESS_TOKEN_SECRET"`
 	SearchUser                string         `json:"SEARCH_USER" envconfig:"SEARCH_USER"`
+	TwitterList               TwitterList    `json:"TWITTER_LIST" envconfig:"TWITTER_LIST"`
 	SearchCriteria            SearchCriteria `json:"SEARCH_CRITERIA" envconfig:"SEARCH_CRITERIA"`
 	Following                 bool           `json:"FOLLOWING" envconfig:"FOLLOWING"`
 	Followers                 bool           `json:"FOLLOWERS" envconfig:"FOLLOWERS"`
@@ -37,6 +38,14 @@ type SearchCriteria struct {
 	ListsCountBetween     FromToNumber `json:"LISTS_COUNT_BETWEEN" envconfig:"LISTS_COUNT_BETWEEN"`
 	JoinedBetween         FromToDate   `json:"JOINED_BETWEEN" envconfig:"JOINED_BETWEEN"`
 	Verified              bool         `json:"VERIFIED" envconfig:"VERIFIED"`
+}
+
+// TwitterList : twitter list to store the result
+type TwitterList struct {
+	SaveList    bool   `json:"SAVE_LIST" envconfig:"SAVE_LIST"`
+	Name        string `json:"LIST_NAME" envconfig:"LIST_NAME"`
+	IsPublic    bool   `json:"IS_PUBLIC" envconfig:"IS_PUBLIC"`
+	Description string `json:"LIST_DESCRIPTION" envconfig:"LIST_DESCRIPTION"`
 }
 
 // FromToNumber : From-To-Number
@@ -62,6 +71,12 @@ var (
 		AccessToken:       "<ACCESS_TOKEN>",
 		AccessTokenSecret: "<ACCESS_TOKEN_SECRET>",
 		SearchUser:        "<SEARCH_USER>",
+		TwitterList: TwitterList{
+			SaveList:    true,
+			Name:        fmt.Sprintf("Twfinder-%v", time.Now()),
+			Description: "Twitter finder list (default name)",
+			IsPublic:    false,
+		},
 		SearchCriteria: SearchCriteria{
 			SearchHandleContext:   []string{"a", "-a"},
 			SearchNameContext:     []string{"a", "-a"},

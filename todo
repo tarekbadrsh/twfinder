@@ -3,7 +3,9 @@
 - save current cache --> done
 - save successful user --> done
 - start from existing cache --> done
-- show result on ui
-- update html result
-- create twitter private list
+- create twitter private list --> done
 - terminate the application safely
+- show result on ui
+- update html configuration view
+- update html result
+- check max list task

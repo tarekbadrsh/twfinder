@@ -1,7 +1,6 @@
 package frontend
 
 import (
-	"fmt"
 	"math/rand"
 	"strconv"
 	"time"
@@ -285,6 +284,18 @@ func ConfigWin() server.Window {
 	//
 	// ---
 	//
+	win.Add(server.NewLabel("Twitter list"))
+	twSaveListCb := newCheckPanel("Save the result to list", &twitterConfig.TwitterList.SaveList)
+	win.Add(twSaveListCb)
+	twitterListNamePan := newStrTxtLblPanel("Name", &twitterConfig.TwitterList.Name, false)
+	win.Add(twitterListNamePan)
+	twitterListDescPan := newStrTxtLblPanel("Description", &twitterConfig.TwitterList.Description, false)
+	win.Add(twitterListDescPan)
+	twPublicListCb := newCheckPanel("public list", &twitterConfig.TwitterList.IsPublic)
+	win.Add(twPublicListCb)
+	//
+	// ---
+	//
 	win.Add(server.NewLabel("Search Criteria"))
 	// searchHandlePanal
 	searchHandlePanal, handleMainMap := newArrTextBoxPanal("Search Handle Context", twitterConfig.SearchCriteria.SearchHandleContext)
@@ -359,13 +370,13 @@ func ConfigWin() server.Window {
 		}
 
 		config.SetConfiguration(twitterConfig)
-		fmt.Println(config.Configuration())
 		err := config.SaveConfiguration("")
 		if err != nil {
 			logger.Error(err)
 			return
 		}
 		e.ReloadWin("home")
+		logger.Info("Configuration has been successfully updated")
 	}, server.ETypeClick)
 
 	win.Add(saveConfigBtn)

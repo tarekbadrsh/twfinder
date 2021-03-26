@@ -47,6 +47,9 @@ func CheckUserCriteria(user *anaconda.User) bool {
 func BuildSearchCriteria() {
 	c := config.Configuration()
 	buildFinderOnce.Do(func() {
+		// all accounts in the system should not be protected
+		intFinder.filters = append(intFinder.filters, protectedFilter)
+
 		intFinder.searchHandleContext = c.SearchCriteria.SearchHandleContext
 		if len(intFinder.searchHandleContext) > 1 {
 			intFinder.filters = append(intFinder.filters, handleFilter)
@@ -247,4 +250,12 @@ func verifiedFilter(u *anaconda.User) (string, bool) {
 		match = false
 	}
 	return "VERIFIED", match
+}
+
+func protectedFilter(u *anaconda.User) (string, bool) {
+	match := true
+	if u.Protected {
+		match = false
+	}
+	return "PROTECTED", match
 }

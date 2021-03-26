@@ -14,7 +14,6 @@ import (
 type html struct {
 	tmpl      *template.Template
 	pagecount int
-	users     []anaconda.User
 }
 
 // StorageObj :
@@ -30,7 +29,7 @@ func BuildHTMLStore() (storage.IStorage, error) {
 	if err != nil {
 		return nil, err
 	}
-	h := &html{tmpl: tmpl, users: []anaconda.User{}}
+	h := &html{tmpl: tmpl}
 
 	// create storage directory
 	htmldir := fmt.Sprintf("%v/html", static.STORAGEDIR)
@@ -50,16 +49,11 @@ func BuildHTMLStore() (storage.IStorage, error) {
 }
 
 // Store :
-func (h *html) Store(u anaconda.User) {
-	h.users = append(h.users, u)
-
-	if len(h.users) < static.RESULTPATCHSIZE {
-		return
-	}
+func (h *html) Store(users []anaconda.User) {
 	str := StorageObj{
 		PreviousPage: h.pagecount - 1,
 		NextPage:     h.pagecount + 1,
-		Users:        h.users,
+		Users:        users,
 	}
 	fName := fmt.Sprintf("%v/html/%v.html", static.STORAGEDIR, h.pagecount)
 	f, err := os.Create(fName)
@@ -74,5 +68,4 @@ func (h *html) Store(u anaconda.User) {
 		logger.Error(err)
 	}
 	h.pagecount = h.pagecount + 1
-	h.users = []anaconda.User{}
 }
