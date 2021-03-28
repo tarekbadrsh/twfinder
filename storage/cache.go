@@ -102,8 +102,8 @@ func LoadCache(userInvstChn chan<- int64) {
 	logger.Info("Cache has been loaded")
 }
 
-// StoreCache : store internal cache to file
-func StoreCache() error {
+// UpdateCache : update internal cache to file
+func UpdateCache() error {
 	oldUserMtx.Lock()
 	defer oldUserMtx.Unlock()
 	oldfile := fmt.Sprintf("%v/%v", static.STORAGEDIR, oldusrfile)

@@ -48,7 +48,7 @@ func (p *Pipeline) Start() {
 
 	go p.storeResult()
 
-	go p.storeCache()
+	go p.updateCache()
 }
 
 func (p *Pipeline) getUsersDetailsBatches() {
@@ -161,10 +161,10 @@ func (p *Pipeline) prepareStorage() {
 	}
 }
 
-func (p *Pipeline) storeCache() {
+func (p *Pipeline) updateCache() {
 	for {
 		time.Sleep(60 * time.Second)
-		storage.StoreCache()
+		storage.UpdateCache()
 		logger.Info("cache has been updated")
 	}
 }

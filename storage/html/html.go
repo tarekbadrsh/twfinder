@@ -35,7 +35,7 @@ func BuildHTMLStore() (storage.IStorage, error) {
 	htmldir := fmt.Sprintf("%v/html", static.STORAGEDIR)
 	err = os.Mkdir(htmldir, os.ModePerm)
 	if err != nil {
-		logger.Error(err)
+		logger.Warn(err)
 	}
 
 	for i := 1; ; i++ {
