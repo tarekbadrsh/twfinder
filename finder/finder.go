@@ -4,7 +4,7 @@ import (
 	"strings"
 	"sync"
 	"twfinder/config"
-	helper "twfinder/helpers"
+	"twfinder/helper"
 
 	"github.com/tarekbadrshalaan/anaconda"
 )
@@ -44,8 +44,12 @@ func CheckUserCriteria(user *anaconda.User) bool {
 }
 
 // BuildSearchCriteria : build interanl search criteria
-func BuildSearchCriteria(c config.Config) {
+func BuildSearchCriteria() {
+	c := config.Configuration()
 	buildFinderOnce.Do(func() {
+		// all accounts in the system should not be protected
+		intFinder.filters = append(intFinder.filters, protectedFilter)
+
 		intFinder.searchHandleContext = c.SearchCriteria.SearchHandleContext
 		if len(intFinder.searchHandleContext) > 1 {
 			intFinder.filters = append(intFinder.filters, handleFilter)
@@ -226,7 +230,7 @@ func listsFilter(u *anaconda.User) (string, bool) {
 
 func joinedFilter(u *anaconda.User) (string, bool) {
 	match := true
-	joinedUnx := helper.StringtoDate(u.CreatedAt).Unix()
+	joinedUnx := helper.StringtoDate(u.CreatedAt, "").Unix()
 	if !intFinder.joinedBetween.From.IsZero() {
 		if joinedUnx <= intFinder.joinedBetween.From.Unix() {
 			match = false
@@ -246,4 +250,12 @@ func verifiedFilter(u *anaconda.User) (string, bool) {
 		match = false
 	}
 	return "VERIFIED", match
+}
+
+func protectedFilter(u *anaconda.User) (string, bool) {
+	match := true
+	if u.Protected {
+		match = false
+	}
+	return "PROTECTED", match
 }

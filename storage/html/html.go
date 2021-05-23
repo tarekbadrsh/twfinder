@@ -11,11 +11,9 @@ import (
 	"github.com/tarekbadrshalaan/anaconda"
 )
 
-const storageDir = "result"
-
 type html struct {
 	tmpl      *template.Template
-	startFile int
+	pagecount int
 }
 
 // StorageObj :
@@ -34,14 +32,16 @@ func BuildHTMLStore() (storage.IStorage, error) {
 	h := &html{tmpl: tmpl}
 
 	// create storage directory
-	err = os.Mkdir(storageDir, os.ModePerm)
+	htmldir := fmt.Sprintf("%v/html", static.STORAGEDIR)
+	err = os.Mkdir(htmldir, os.ModePerm)
 	if err != nil {
 		logger.Warn(err)
 	}
+
 	for i := 1; ; i++ {
-		fname := fmt.Sprintf("%v/%v.html", storageDir, i)
+		fname := fmt.Sprintf("%v/html/%v.html", static.STORAGEDIR, i)
 		if _, err := os.Stat(fname); err != nil {
-			h.startFile = i
+			h.pagecount = i
 			break
 		}
 	}
@@ -49,27 +49,23 @@ func BuildHTMLStore() (storage.IStorage, error) {
 }
 
 // Store :
-func (h *html) Store(usersChan <-chan anaconda.User) {
-	counter := h.startFile
-	for {
-		str := StorageObj{
-			PreviousPage: counter - 1,
-			NextPage:     counter + 1,
-			Users:        []anaconda.User{},
-		}
-		fName := fmt.Sprintf("%v/%v.html", storageDir, counter)
-		f, err := os.Create(fName)
-		if err != nil {
-			fmt.Println(err)
-			f.Close()
-			continue
-		}
-		for i := 0; i < static.RESULTPATCHSIZE; i++ {
-			u := <-usersChan
-			str.Users = append(str.Users, u)
-		}
-		h.tmpl.Execute(f, str)
-		f.Close()
-		counter++
+func (h *html) Store(users []anaconda.User) {
+	str := StorageObj{
+		PreviousPage: h.pagecount - 1,
+		NextPage:     h.pagecount + 1,
+		Users:        users,
 	}
+	fName := fmt.Sprintf("%v/html/%v.html", static.STORAGEDIR, h.pagecount)
+	f, err := os.Create(fName)
+	if err != nil {
+		logger.Error(err)
+		f.Close()
+		return
+	}
+	defer f.Close()
+	err = h.tmpl.Execute(f, str)
+	if err != nil {
+		logger.Error(err)
+	}
+	h.pagecount = h.pagecount + 1
 }

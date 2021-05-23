@@ -10,7 +10,7 @@ require (
 	github.com/garyburd/go-oauth v0.0.0-20180319155456-bca2e7f09a17 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/natefinch/lumberjack v2.0.0+incompatible
-	github.com/tarekbadrshalaan/anaconda v2.0.0+incompatible
+	github.com/tarekbadrshalaan/anaconda v2.0.2+incompatible
 	github.com/tarekbadrshalaan/goStuff v1.1.1
 	go.uber.org/zap v1.9.1
 	golang.org/x/net v0.0.0-20200602114024-627f9648deb9 // indirect

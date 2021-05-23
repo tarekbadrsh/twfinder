@@ -1,6 +1,8 @@
 package pipeline
 
 import (
+	"fmt"
+	"os"
 	"time"
 	"twfinder/config"
 	"twfinder/finder"
@@ -9,6 +11,7 @@ import (
 	"twfinder/static"
 	"twfinder/storage"
 	"twfinder/storage/html"
+	"twfinder/storage/twitter"
 
 	"github.com/tarekbadrshalaan/anaconda"
 )
@@ -25,7 +28,7 @@ type Pipeline struct {
 func NewPipeline() *Pipeline {
 	return &Pipeline{
 		InputUserIdsChn: make(chan int64),
-		userInvstChn:    make(chan int64, 100),
+		userInvstChn:    make(chan int64, 1000),
 		userDetailsChn:  make(chan anaconda.User),
 		validUserChn:    make(chan anaconda.User),
 	}
@@ -33,6 +36,10 @@ func NewPipeline() *Pipeline {
 
 // Start :
 func (p *Pipeline) Start() {
+	p.prepareStorage()
+	// load the cache if exist
+	storage.LoadCache(p.userInvstChn)
+
 	go p.getUsersDetailsBatches()
 
 	go p.getUserFollowersFollowing()
@@ -40,6 +47,8 @@ func (p *Pipeline) Start() {
 	go p.checkValidateUser()
 
 	go p.storeResult()
+
+	go p.updateCache()
 }
 
 func (p *Pipeline) getUsersDetailsBatches() {
@@ -47,7 +56,7 @@ func (p *Pipeline) getUsersDetailsBatches() {
 		inIdes := make([]int64, static.TWITTERPATCHSIZE)
 		for i := 0; i < static.TWITTERPATCHSIZE; i++ {
 			id := <-p.InputUserIdsChn
-			if storage.CheckIDExist(id) {
+			if storage.CheckOldUser(id) {
 				i--
 				continue
 			}
@@ -76,17 +85,21 @@ func (p *Pipeline) getUserFollowersFollowing() {
 
 	for {
 		userID := <-p.userInvstChn
+		storage.RemoveInvestUser(userID)
 		logger.Infof("[New User] %v", userID)
 		err := request.UserFollowersFollowing("", userID, p.InputUserIdsChn)
-		trial := 5
-		for err != nil {
-			trial--
-			logger.Errorf("%v\n>>> The application will try again after 1 minutes with user:%v", err, userID)
-			time.Sleep(1 * time.Minute)
-			err = request.UserFollowersFollowing("", userID, p.InputUserIdsChn)
-			if trial < 1 {
-				err = nil
-				logger.Errorf("After 5 trials ... The application will skip user:%v", userID)
+		if err != nil {
+			if aerr, ok := err.(*anaconda.ApiError); ok {
+				if isRateLimitError, nextWindow := aerr.RateLimitCheck(); isRateLimitError {
+					logger.Errorf("Rate limit exceeded Error, The application will try again after %v", nextWindow)
+					<-time.After(time.Until(nextWindow))
+				}
+			} else {
+				logger.Errorf("%v\n>>> Error occurred during request user:%v", err, userID)
+				err = request.UserFollowersFollowing("", userID, p.InputUserIdsChn)
+				if err != nil {
+					logger.Errorf("%v\n>>> [skip user] Error occurred during request user:<%v>", err, userID)
+				}
 			}
 		}
 	}
@@ -98,13 +111,15 @@ func (p *Pipeline) checkValidateUser() {
 		user := <-p.userDetailsChn
 		valid := finder.CheckUserCriteria(&user)
 		if valid {
-			logger.Infof("[MATCH] https://twitter.com/%v", user.ScreenName)
+			logger.Infof("[MATCH] (%v) https://twitter.com/%v", user.Id, user.ScreenName)
 			p.validUserChn <- user
 		}
 
 		if (c.Recursive && c.RecursiveSuccessUsersOnly && valid) || (c.Recursive && !c.RecursiveSuccessUsersOnly) {
+			// to ignore in case the channel is full.
 			select {
 			case p.userInvstChn <- user.Id:
+				storage.AddInvestUser(user.Id)
 			default:
 			}
 		}
@@ -112,12 +127,46 @@ func (p *Pipeline) checkValidateUser() {
 }
 
 func (p *Pipeline) storeResult() {
-	stor, err := html.BuildHTMLStore()
+	// html storage
+	htmlstor, err := html.BuildHTMLStore()
 	if err != nil {
 		logger.Error(err)
 	}
-	storage.RegisterStorage(stor)
+	storage.RegisterStorage(htmlstor)
+
+	// twitter storage
+	if config.Configuration().TwitterList.SaveList {
+		twstor, err := twitter.BuildTwitterStore()
+		if err != nil {
+			logger.Error(err)
+		} else {
+			storage.RegisterStorage(twstor)
+		}
+	}
+
 	storage.Store(p.validUserChn)
+}
+
+func (p *Pipeline) prepareStorage() {
+	// create storage directory
+	err := os.MkdirAll(static.STORAGEDIR, os.ModePerm)
+	if err != nil {
+		logger.Fatal(err)
+	}
+	// save the current config with the storage path
+	configPath := fmt.Sprintf("%v/%v", static.STORAGEDIR, "config.json")
+	err = config.SaveConfiguration(configPath)
+	if err != nil {
+		logger.Error(err)
+	}
+}
+
+func (p *Pipeline) updateCache() {
+	for {
+		time.Sleep(60 * time.Second)
+		storage.UpdateCache()
+		logger.Info("cache has been updated")
+	}
 }
 
 // Close :

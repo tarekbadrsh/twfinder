@@ -4,24 +4,28 @@
     "ACCESS_TOKEN": "<ACCESS_TOKEN>",
     "ACCESS_TOKEN_SECRET": "<ACCESS_TOKEN_SECRET>",
     "SEARCH_USER": "<SEARCH_USER>",
+    "TWITTER_LIST": {
+        "SAVE_LIST": true,
+        "LIST_NAME": "<LIST_NAME>",
+        "IS_PUBLIC": false,
+        "LIST_DESCRIPTION": "<LIST_DESCRIPTION>"
+    },
     "SEARCH_CRITERIA": {
         "SEARCH_HANDLE_CONTEXT": [
-            "adam",
-            "erik"
+            "a",
+            "-a"
         ],
         "SEARCH_NAME_CONTEXT": [
-            "dr",
-            "mr"
+            "a",
+            "-a"
         ],
         "SEARCH_BIO_CONTEXT": [
-            "Developer",
-            "CEO",
-            "Linux",
-            "technology"
+            "a",
+            "-a"
         ],
         "SEARCH_LOCATION_CONTEXT": [
-            "Berlin",
-            "Gothenburg"
+            "a",
+            "-a"
         ],
         "FOLLOWERS_COUNT_BETWEEN": {
             "FROM": 0,
@@ -50,7 +54,7 @@
         "VERIFIED": true
     },
     "FOLLOWING": true,
-    "FOLLOWERS": false,
+    "FOLLOWERS": true,
     "RECURSIVE": true,
     "RECURSIVE_SUCCESS_USERS_ONLY": true
 }
