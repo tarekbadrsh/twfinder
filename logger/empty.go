@@ -18,21 +18,6 @@ func (l *emptyLogger) Debugf(format string, prm ...interface{}) {
 
 }
 
-// Print :
-func (l *emptyLogger) Print(a ...interface{}) {
-
-}
-
-// Print :
-func (l *emptyLogger) Println(a ...interface{}) {
-
-}
-
-// Printf :
-func (l *emptyLogger) Printf(format string, prm ...interface{}) {
-
-}
-
 // Info :
 func (l *emptyLogger) Info(a ...interface{}) {
 

@@ -15,9 +15,6 @@ var (
 type ILogger interface {
 	Debug(a ...interface{})
 	Debugf(format string, prm ...interface{})
-	Print(a ...interface{})
-	Printf(format string, prm ...interface{})
-	Println(a ...interface{})
 	Info(a ...interface{})
 	Infof(format string, prm ...interface{})
 	Warn(a ...interface{})
@@ -59,21 +56,6 @@ func Debug(a ...interface{}) {
 // Debugf :
 func Debugf(format string, prm ...interface{}) {
 	(*internalLogger).Debugf(format, prm...)
-}
-
-// Print :
-func Print(a ...interface{}) {
-	(*internalLogger).Print(a...)
-}
-
-// Println :
-func Println(a ...interface{}) {
-	(*internalLogger).Println(a...)
-}
-
-// Printf :
-func Printf(format string, prm ...interface{}) {
-	(*internalLogger).Printf(format, prm...)
 }
 
 // Info :

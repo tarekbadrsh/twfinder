@@ -20,21 +20,6 @@ func (l *printLogger) Debugf(format string, prm ...interface{}) {
 	fmt.Printf(format, prm...)
 }
 
-// Print :
-func (l *printLogger) Print(a ...interface{}) {
-	fmt.Println(a...)
-}
-
-// Print :
-func (l *printLogger) Println(a ...interface{}) {
-	fmt.Println(a...)
-}
-
-// Printf :
-func (l *printLogger) Printf(format string, prm ...interface{}) {
-	fmt.Printf(format, prm...)
-}
-
 // Info :
 func (l *printLogger) Info(a ...interface{}) {
 	fmt.Println(a...)

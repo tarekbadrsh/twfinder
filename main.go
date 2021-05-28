@@ -18,7 +18,7 @@ func main() {
 	/* configuration initialize end */
 
 	/* logger initialize start */
-	mylogger := logger.NewZapLogger()
+	mylogger := logger.NewZapLogger("ERROR", "DEBUG")
 	logger.InitializeLogger(&mylogger)
 	defer logger.Close()
 	/* logger initialize end */

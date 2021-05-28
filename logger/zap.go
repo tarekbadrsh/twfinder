@@ -20,15 +20,43 @@ func syslogTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 }
 
 func filelogTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
-	enc.AppendString(fmt.Sprintf("%s", t.Format("2006-01-02T15:04:05")))
+	enc.AppendString(t.Format("2006-01-02T15:04:05"))
 }
 
 func customLevelEncoder(level zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
 	enc.AppendString(fmt.Sprintf("[%v]", level.CapitalString()))
 }
 
+func getZapLogLevelFunc(level string) zap.LevelEnablerFunc {
+	switch level {
+	case "DEBUG":
+		return zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+			return lvl >= zapcore.DebugLevel
+		})
+	case "INFO":
+		return zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+			return lvl >= zapcore.InfoLevel
+		})
+	case "WARN":
+		return zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+			return lvl >= zapcore.WarnLevel
+		})
+	case "ERROR":
+		return zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+			return lvl >= zapcore.ErrorLevel
+		})
+	case "FATAL":
+		return zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+			return lvl >= zapcore.FatalLevel
+		})
+	}
+	return zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+		return lvl >= zapcore.InfoLevel
+	})
+}
+
 // NewZapLogger :
-func NewZapLogger() ILogger {
+func NewZapLogger(fileLogLevel, terminalLogLevel string) ILogger {
 	terminalEncoder := zapcore.NewConsoleEncoder(zapcore.EncoderConfig{
 		MessageKey:     "M",
 		LevelKey:       "L",
@@ -65,20 +93,21 @@ func NewZapLogger() ILogger {
 		Compress:   true,
 	})
 
-	InfoLevel := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-		return lvl >= zapcore.InfoLevel
-	})
-
-	// ErrorLevel := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-	// 	return lvl >= zapcore.ErrorLevel
-	// })
-
-	core := zapcore.NewTee(
-		zapcore.NewCore(terminalEncoder, terminalOutput, InfoLevel),
-		// should be errors only (ErrorLevel)
-		// but it might needed for this kind of apps
-		zapcore.NewCore(fileEncoder, fileOutput, InfoLevel),
-	)
+	core := zapcore.NewTee()
+	if fileLogLevel != "" && terminalLogLevel != "" {
+		core = zapcore.NewTee(
+			zapcore.NewCore(terminalEncoder, terminalOutput, getZapLogLevelFunc(terminalLogLevel)),
+			zapcore.NewCore(fileEncoder, fileOutput, getZapLogLevelFunc(fileLogLevel)),
+		)
+	} else if fileLogLevel != "" {
+		core = zapcore.NewTee(
+			zapcore.NewCore(fileEncoder, fileOutput, getZapLogLevelFunc(fileLogLevel)),
+		)
+	} else if terminalLogLevel != "" {
+		core = zapcore.NewTee(
+			zapcore.NewCore(terminalEncoder, terminalOutput, getZapLogLevelFunc(terminalLogLevel)),
+		)
+	}
 	return &zapLogger{zap.New(core)}
 }
 
@@ -106,21 +135,6 @@ func (l *zapLogger) Debug(a ...interface{}) {
 // Debugf :
 func (l *zapLogger) Debugf(format string, prm ...interface{}) {
 	l.writerf(zap.DebugLevel, format, prm...)
-}
-
-// Print :
-func (l *zapLogger) Print(a ...interface{}) {
-	fmt.Print(a...)
-}
-
-// Print :
-func (l *zapLogger) Println(a ...interface{}) {
-	fmt.Println(a...)
-}
-
-// Printf :
-func (l *zapLogger) Printf(format string, prm ...interface{}) {
-	fmt.Printf(format, prm...)
 }
 
 // Info :
