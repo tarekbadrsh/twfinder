@@ -1,7 +1,7 @@
 # twfinder
-Find twitter users by them (name, handle, bio, location, followers, following count or verified)
+Find twitter users by (name, handle, bio, location, followers, following count or verified).
 
-By using Twitter API, The application start with one user and find in his (followers/following) any account match the search criteria and continue recursively with the matched users.
+By using Twitter API, The application starts with one user and finds in his (followers/following) any account that matches the search criteria and continues recursively with the matched users.
 
 ## How does it work
 1. By using Twitter-API endpoints
