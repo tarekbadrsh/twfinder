@@ -390,7 +390,7 @@ func (s *serverImpl) addSessCookie(sess Session, w http.ResponseWriter) {
 
 // sessCleaner periodically checks whether private sessions has timed out
 // in an endless loop. If a session has timed out, removes it.
-// This method is to start as a new go routine.
+// This method builded to start as a go routine.
 func (s *serverImpl) sessCleaner() {
 	sleep := 10 * time.Second
 	for {
